@@ -1,0 +1,1439 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="C++11-thread多线程-线程互斥和同步通信-死锁问题, Cheng Wenqing&#39;s Blog">
+    <meta name="description" content="1. C++11的多线程类threadC++11之前，C++库中没有提供和线程相关的类或者接口，因此在编写多线程程序时，Windows上需要调用CreateThread创建线程，Linux下需要调用clone或者pthread线程库的接口函">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>C++11-thread多线程-线程互斥和同步通信-死锁问题 | Cheng Wenqing&#39;s Blog</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"><link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Cheng Wenqing&#39;s Blog</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言板</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Cheng Wenqing&#39;s Blog</div>
+        <div class="logo-desc">
+            
+            Never really desperate, only the lost of the soul.
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言板
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/13.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">C++11-thread多线程-线程互斥和同步通信-死锁问题</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">操作系统</span>
+                            </a>
+                        
+                            <a href="/tags/C-11/">
+                                <span class="chip bg-color">C++11</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2024-01-20
+                </div>
+                
+
+                
+
+                
+
+                
+
+                
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="1-C-11的多线程类thread"><a href="#1-C-11的多线程类thread" class="headerlink" title="1. C++11的多线程类thread"></a>1. C++11的多线程类thread</h2><p>C++11之前，C++库中没有提供和线程相关的类或者接口，因此在编写多线程程序时，Windows上需要调用CreateThread创建线程，Linux下需要调用clone或者pthread线程库的接口函数pthread_create来创建线程。但是这样是直接调用了系统相关的API函数，编写的代码，无法做到跨平台编译运行。</p>
+<p>C++11之后提供了thread线程类，可以很方便的编写多线程程序（<strong>注意：编译器需要支持C++11之后的语法，推荐VS2017，g++4.6版本以上</strong>），代码示例如下：</p>
+<blockquote>
+<pre class=" language-c++"><code class="language-c++">#include <iostream>
+#include <thread>
+#include <string>
+using namespace std;
+
+// 线程1的线程函数
+void threadProc1()
+&#123;
+cout << "thread-1 run begin!" << endl;
+// 线程1睡眠2秒
+std::this_thread::sleep_for(std::chrono::seconds(2));
+cout << "thread-1 2秒唤醒，run end!" << endl;
+&#125;
+
+// 线程2的线程函数
+void threadProc2(int val, string info)
+&#123;
+cout << "thread-2 run begin!" << endl;
+cout << "thread-2 args[val:" << val << ",info:" << info << "]" << endl;
+// 线程2睡眠4秒
+std::this_thread::sleep_for(std::chrono::seconds(4));
+cout << "thread-2 4秒唤醒，run end!" << endl;
+&#125;
+int main()
+&#123;
+cout << "main thread begin!" << endl;
+
+// 创建thread线程对象，传入线程函数和参数，线程直接启动运行
+thread t(threadProc1);
+thread t1(threadProc2, 20, "hello world");
+
+// 等待线程t和t1执行完，main线程再继续运行
+t.join();
+t1.join();
+
+cout << "main thread end!" << endl;
+return 0;
+&#125;
+</code></pre>
+</blockquote>
+<p>代码运行打印如下:</p>
+<blockquote>
+<pre class=" language-C++"><code class="language-C++">main thread begin!
+thread-1 run begin!
+thread-2 run begin!
+thread-2 args[val:20,info:hello world]
+thread-1 2秒唤醒，run end!
+thread-2 4秒唤醒，run end!
+main thread end!
+</code></pre>
+</blockquote>
+<p>可以看到，在C++语言层面编写多线程程序，用thread线程类非常简单，定义thread对象，只需要传入相应的线程函数和参数就可以了。</p>
+<p>上面同样的代码在Linux平台下面用g++编译：<br><strong>g++ 源文件名字.cpp -lpthread</strong><br>【注意】：需要链接pthread线程动态库，所以C++的thread类在Linux环境下使用的就是pthread线程库的相关接口。</p>
+<p>然后用strace命令跟踪程序的启动过程：<br>strace .&#x2F;a.out</p>
+<p>有如下打印输出：<br><img src="/../img/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1FJQU5HV0VJWVVBTg==,size_16,color_FFFFFF,t_70.png" alt="img"></p>
+<p>说明C++ thread线程对象启动线程的调用过程就是 <strong>thread-&gt;pthread_create-&gt;clone</strong>，还是Linux pthread线程库使用的那一套，好处就是现在可以跨平台编译运行了，在Windows上当然调用的就是CreateThread系统API创建线程了。</p>
+<h2 id="2-线程互斥"><a href="#2-线程互斥" class="headerlink" title="2. 线程互斥"></a>2. 线程互斥</h2><p>在多线程环境中运行的代码段，需要考虑是否存在竞态条件，如果存在竞态条件，我们就说该代码段不是线程安全的，不能直接运行在多线程环境当中，对于这样的代码段，我们经常称之为临界区资源，对于临界区资源，多线程环境下需要保证它以原子操作执行，要保证临界区的原子操作，就需要用到线程间的互斥操作-锁机制，thread类库还提供了更轻量级的基于CAS操作的原子操作类。</p>
+<p>下面用模拟3个窗口同时卖票的场景，用代码示例一下线程间的互斥操作。</p>
+<h3 id="2-1-thread线程类库的互斥锁mutex"><a href="#2-1-thread线程类库的互斥锁mutex" class="headerlink" title="2.1 thread线程类库的互斥锁mutex"></a>2.1 thread线程类库的互斥锁mutex</h3><p>下面这段代码，启动三个线程模拟三个窗口同时卖票，总票数是100张，由于整数的- -操作不是线程安全的操作，因为多线程环境中，需要通过加互斥锁做到线程安全，代码如下示例：</p>
+<blockquote>
+<pre class=" language-C++"><code class="language-C++">// 车票总数是100张
+volatile int tickets = 100; 
+// 全局的互斥锁
+std::mutex mtx;
+
+// 线程函数
+void sellTicketTask(std::string wndName)
+&#123;
+    while (tickets > 0)
+    &#123;
+        // 获取互斥锁资源
+        mtx.lock();
+        if (tickets > 0)
+        &#123;
+            std::cout << wndName << " 售卖第" << tickets << "张票" << std::endl;
+            tickets--;
+        &#125;
+        // 释放互斥锁资源
+        mtx.unlock();
+
+        // 每卖出一张票，睡眠100ms，让每个窗口都有机会卖票
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    &#125;
+&#125;
+
+// 模拟车站窗口卖票，使用C++11 线程互斥锁mutex
+int main()
+&#123;
+    // 创建三个模拟窗口卖票线程
+    std::thread t1(sellTicketTask, "车票窗口一");
+    std::thread t2(sellTicketTask, "车票窗口二");
+    std::thread t3(sellTicketTask, "车票窗口三");
+
+    // 等待三个线程执行完成
+    t1.join();
+    t2.join();
+    t3.join();
+
+    return 0;
+&#125;
+</code></pre>
+</blockquote>
+<p>通过上面的代码可以看到，C++11的mutex和Linux平台下pthread线程库的pthread_mutex_t互斥锁使用几乎是一样的（实际上在Linux平台下mutex就是调用的pthread_mutex_t互斥锁相关的系统函数），mutex也支持trylock活锁机制，可以自己进行测试。</p>
+<h3 id="2-2-thread线程类库基于CAS的原子类"><a href="#2-2-thread线程类库基于CAS的原子类" class="headerlink" title="2.2 thread线程类库基于CAS的原子类"></a>2.2 thread线程类库基于CAS的原子类</h3><p>实际上，上面代码中因为tickets车票数量是整数，因此它的- -操作需要在多线程环境下添加互斥操作，<strong>但是mutex互斥锁毕竟比较重，对于系统消耗有些大</strong>，C++11的thread类库提供了针对简单类型的原子操作类，如std::atomic_int，atomic_long，atomic_bool等，它们值的增减都是<strong>基于CAS操作的，既保证了线程安全，效率还非常高</strong>。</p>
+<p>下面代码示例开启10个线程，每个线程对整数增加1000次，保证线程安全的情况下，应该加到10000次，这种情况下，可以用atomic_int来实现，代码示例如下：</p>
+<blockquote>
+<pre class=" language-C++"><code class="language-C++">#include <iostream>
+#include <atomic> // C++11线程库提供的原子类
+#include <thread> // C++线程类库的头文件
+#include <vector>
+
+// 原子整形，CAS操作保证给count自增自减的原子操作
+std::atomic_int count = 0;
+
+// 线程函数
+void sumTask()
+&#123;
+// 每个线程给count加1000次
+for (int i = 0; i < 1000; ++i)
+&#123;
+    count++;
+&#125;
+&#125;
+
+int main()
+&#123;
+// 创建10个线程放在容器当中
+std::vector<std::thread> vec;
+for (int i = 0; i < 10; ++i)
+&#123;
+    vec.push_back(std::thread(sumTask));
+&#125;
+
+// 等待线程执行完成
+for (int i = 0; i < vec.size(); ++i)
+&#123;
+    vec[i].join();
+&#125;
+
+// 所有子线程运行结束，count的结果每次运行应该都是10000
+std::cout << "count : " << count << std::endl;
+
+return 0;
+&#125;
+</code></pre>
+</blockquote>
+<p>实际上，C++11类库的原子操作类，在Linux平台下调用的也是CAS（compare_and_set）相关的系统接口。</p>
+<h2 id="3-线程通信"><a href="#3-线程通信" class="headerlink" title="3. 线程通信"></a>3. 线程通信</h2><p>多线程在运行过程中，各个线程都是随着OS的调度算法，占用CPU时间片来执行指令做事情，每个线程的运行完全没有顺序可言。但是在某些应用场景下，一个线程需要等待另外一个线程的运行结果，才能继续往下执行，这就需要涉及线程之间的同步通信机制。</p>
+<p>线程间同步通信最典型的例子就是<strong>生产者-消费者模型</strong>，生产者线程生产出产品以后，会通知消费者线程去消费产品；如果消费者线程去消费产品，发现还没有产品生产出来，它需要通知生产者线程赶快生产产品，等生产者线程生产出产品以后，消费者线程才能继续往下执行。</p>
+<p>C++11 线程库提供的<strong>条件变量condition_variable</strong>，就是Linux平台下的Condition Variable机制，<strong>用于解决线程间的同步通信问题</strong>，下面通过代码演示一个生产者-消费者线程模型，仔细分析代码：</p>
+<blockquote>
+<pre class=" language-C++"><code class="language-C++">#include <iostream>           // std::cout
+#include <thread>             // std::thread
+#include <mutex>              // std::mutex, std::unique_lock
+#include <condition_variable> // std::condition_variable
+#include <vector>
+
+// 定义互斥锁(条件变量需要和互斥锁一起使用)
+std::mutex mtx;
+// 定义条件变量(用来做线程间的同步通信)
+std::condition_variable cv;
+// 定义vector容器，作为生产者和消费者共享的容器
+std::vector<int> vec;
+
+// 生产者线程函数
+void producer()
+&#123;
+// 生产者每生产一个，就通知消费者消费一个
+for (int i = 1; i <= 10; ++i)
+&#123;
+    // 获取mtx互斥锁资源
+    std::unique_lock<std::mutex> lock(mtx);
+
+    // 如果容器不为空，代表还有产品未消费，等待消费者线程消费完，再生产
+    while (!vec.empty())
+    &#123;
+        // 判断容器不为空，进入等待条件变量的状态，释放mtx锁，
+        // 让消费者线程抢到锁能够去消费产品
+        cv.wait(lock);
+    &#125;
+    vec.push_back(i); // 表示生产者生产的产品序号i
+    std::cout << "producer生产产品:" << i << std::endl;
+
+    /* 
+    生产者线程生产完产品，通知等待在cv条件变量上的消费者线程，
+    可以开始消费产品了，然后释放锁mtx
+    */
+    cv.notify_all();
+
+    // 生产一个产品，睡眠100ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+&#125;
+&#125;
+// 消费者线程函数
+void consumer()
+&#123;
+// 消费者每消费一个，就通知生产者生产一个
+for (int i = 1; i <= 10; ++i)
+&#123;
+    // 获取mtx互斥锁资源
+    std::unique_lock<std::mutex> lock(mtx);
+
+    // 如果容器为空，代表还有没有产品可消费，等待生产者生产，再消费
+    while (vec.empty())
+    &#123;
+        // 判断容器为空，进入等待条件变量的状态，释放mtx锁，
+        // 让生产者线程抢到锁能够去生产产品
+        cv.wait(lock);
+    &#125;
+    int data = vec.back(); // 表示消费者消费的产品序号i
+    vec.pop_back();
+    std::cout << "consumer消费产品:" << data << std::endl;
+
+    /*
+    消费者消费完产品，通知等待在cv条件变量上的生产者线程，
+    可以开始生产产品了，然后释放锁mtx
+    */
+    cv.notify_all();
+
+    // 消费一个产品，睡眠100ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+&#125;
+&#125;
+int main()
+&#123;
+// 创建生产者和消费者线程
+std::thread t1(producer);
+std::thread t2(consumer);
+
+// main主线程等待所有子线程执行完
+t1.join();
+t2.join();
+
+return 0;
+&#125;
+</code></pre>
+</blockquote>
+<p><strong>代码运行结果如下</strong>，可以看到，生产者和消费者线程交替生产产品和消费产品，两个线程之间进行了完美的通信协调运行。</p>
+<blockquote>
+<pre class=" language-c++"><code class="language-c++">producer生产产品:1
+consumer消费产品:1
+producer生产产品:2
+consumer消费产品:2
+producer生产产品:3
+consumer消费产品:3
+producer生产产品:4
+consumer消费产品:4
+producer生产产品:5
+consumer消费产品:5
+producer生产产品:6
+consumer消费产品:6
+producer生产产品:7
+consumer消费产品:7
+producer生产产品:8
+consumer消费产品:8
+producer生产产品:9
+consumer消费产品:9
+producer生产产品:10
+consumer消费产品:10
+</code></pre>
+</blockquote>
+<h2 id="4-死锁问题案例分析及解决"><a href="#4-死锁问题案例分析及解决" class="headerlink" title="4. 死锁问题案例分析及解决"></a>4. 死锁问题案例分析及解决</h2><p>当程序运行时，出现假死的现象，有可能是<strong>程序死循环</strong>了，有可能是<strong>程序等待的I&#x2F;O</strong>、<strong>网络事件没发生导致程序阻塞</strong>了，也有可能是<strong>程序死锁</strong>了，下面举例说明在Linux系统下如何分许程序的死锁问题。</p>
+<p>示例：<br>当一个程序的多个线程获取多个互斥锁资源的时候，就有可能发生死锁问题，比如线程A先获取了锁1，线程B获取了锁2，进而线程A还需要获取锁2才能继续执行，但是由于锁2被线程B持有还没有释放，线程A为了等待锁2资源就阻塞了；线程B这时候需要获取锁1才能往下执行，但是由于锁1被线程A持有，导致A也进入阻塞。</p>
+<p>线程A和线程B都在等待对方释放锁资源，但是它们又不肯释放原来的锁资源，导致线程A和B一直互相等待，进程死锁了。下面代码示例演示这个问题：</p>
+<blockquote>
+<pre class=" language-c++"><code class="language-c++">#include <iostream>           // std::cout
+#include <thread>             // std::thread
+#include <mutex>              // std::mutex, std::unique_lock
+#include <condition_variable> // std::condition_variable
+#include <vector>
+
+// 锁资源1
+std::mutex mtx1;
+// 锁资源2
+std::mutex mtx2;
+
+// 线程A的函数
+void taskA()
+&#123;
+// 保证线程A先获取锁1
+std::lock_guard<std::mutex> lockA(mtx1);
+std::cout << "线程A获取锁1" << std::endl;
+
+// 线程A睡眠2s再获取锁2，保证锁2先被线程B获取，模拟死锁问题的发生
+std::this_thread::sleep_for(std::chrono::seconds(2));
+
+// 线程A先获取锁2
+std::lock_guard<std::mutex> lockB(mtx2);
+std::cout << "线程A获取锁2" << std::endl;
+
+std::cout << "线程A释放所有锁资源，结束运行！" << std::endl;
+&#125;
+
+// 线程B的函数
+void taskB()
+&#123;
+// 线程B先睡眠1s保证线程A先获取锁1
+std::this_thread::sleep_for(std::chrono::seconds(1));
+std::lock_guard<std::mutex> lockB(mtx2);
+std::cout << "线程B获取锁2" << std::endl;
+
+// 线程B尝试获取锁1
+std::lock_guard<std::mutex> lockA(mtx1);
+std::cout << "线程B获取锁1" << std::endl;
+
+std::cout << "线程B释放所有锁资源，结束运行！" << std::endl;
+&#125;
+int main()
+&#123;
+// 创建生产者和消费者线程
+std::thread t1(taskA);
+std::thread t2(taskB);
+
+// main主线程等待所有子线程执行完
+t1.join();
+t2.join();
+
+return 0;
+&#125;
+</code></pre>
+</blockquote>
+<p><strong>运行上面的程序，打印如下</strong>：</p>
+<blockquote>
+<pre class=" language-C++"><code class="language-C++">./a.out 
+线程A获取锁1
+线程B获取锁2
+</code></pre>
+</blockquote>
+<p>可以看到，线程A获取锁1、线程B获取锁2以后，进程就不往下继续执行了，一直等待在这里，如果这是我们碰到的一个问题场景，<strong>如何判断出这是由于线程间死锁引起的呢？</strong></p>
+<p><strong>1.先通过ps命令查看一下进程当前的运行状态和PID</strong>，如下：<br> ps -aux | grep a.out<br>tony <strong>1953</strong> 0.0 0.0 98108 1904 pts&#x2F;0 <strong>Sl+</strong> 10:41 0:00 .&#x2F;a.out<br>root 2064 0.0 0.0 21536 1076 pts&#x2F;1 S+ 10:51 0:00 grep –color&#x3D;auto a.out<br>从上面的命令可以看出，a.out进程的PID是1953，当前状态是Sl+，相当于是多线程程序，全部进入阻塞状态。</p>
+<p><strong>2.通过top命令再查看一下进程内每个线程具体的运行情况</strong>，如下：<br>root@tony-virtual-machine:&#x2F;home&#x2F;tony# top -Hp 1953</p>
+<p>进程 USER PR NI VIRT RES SHR CPU %MEM TIME+ COMMAND<br>1953 tony 20 0 98108 1904 1752 <strong>S</strong> 0.0 0.1 0:00.00 a.out<br>1954 tony 20 0 98108 1904 1752 <strong>S</strong> 0.0 0.1 0:00.00 a.out<br>1955 tony 20 0 98108 1904 1752 <strong>S</strong> 0.0 0.1 0:00.00 a.out</p>
+<p>从top命令的打印信息可以看出，所有线程都进入阻塞状态，CPU占用率都为0.0，<strong>可以排除是死循环的问题</strong>，因为死循环会造成CPU使用率居高不下，而且线程的状态也不会是S。那么接下来有可能是由于I&#x2F;O网络事件没有发生使线程阻塞，或者是线程发生死锁问题了。</p>
+<p><strong>3.通过gdb远程调试正在运行的程序，打印进程每一个线程的调用堆栈信息</strong>，过程如下：<br><strong>4.通过gdb attach pid远程调试上面的a.out进程</strong>，命令如下：<br>root@tony-virtual-machine:&#x2F;home&#x2F;tony# <strong>gdb attach 1953</strong></p>
+<p><strong>5.进入gdb调试命令行以后，打印所有线程的调用栈信息</strong>，信息如下：<br><strong>(gdb) thread apply all bt</strong></p>
+<p><strong>Thread 3</strong> (Thread 0x7feb523ec700 (LWP 1955)):<br>#0 _llllock_wait () at …&#x2F;sysdeps&#x2F;unix&#x2F;sysv&#x2F;linux&#x2F;x86_64&#x2F;lowlevellock.S:135<br><strong>#1 0x00007feb53928023 in GI_pthread_mutex_lock (mutex&#x3D;0x5646aabe7140 ) at …&#x2F;nptl&#x2F;pthread_mutex_lock.c:78</strong><br>#2 0x00005646aa9e40bf in __gthread_mutex_lock(pthread_mutex_t*) ()<br>#3 0x00005646aa9e4630 in std::mutex::lock() ()<br>#4 0x00005646aa9e46ac in std::lock_guardstd::mutex::lock_guard(std::mutex&amp;) ()<br>#5 0x00005646aa9e42c0 in taskB() ()<br>#6 0x00005646aa9e4bdb in void std::invoke_impl&lt;void, void ()()&gt;(std::invoke_other, void (&amp;&amp;)()) ()<br>#7 0x00005646aa9e49e8 in std::invoke_result&lt;void ()()&gt;::type std::invoke&lt;void ()()&gt;(void (&amp;&amp;)()) ()<br>#8 0x00005646aa9e50b6 in decltype (invoke((_S_declval&lt;0ul&gt;)()))****** std::thread::_Invoker&lt;std::tuple&lt;void ()()&gt; &gt;::_M_invoke&lt;0ul&gt;(std::_Index_tuple&lt;0ul&gt;) ()<br>#9 0x00005646aa9e5072 in std::thread::_Invoker&lt;std::tuple&lt;void ()()&gt; &gt;::operator()() ()<br>#10 0x00005646aa9e5042 in std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;void ()()&gt; &gt; &gt;::_M_run() ()<br>#11 0x00007feb5365257f in ?? () from &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libstdc++.so.6<br>#12 0x00007feb539256db in start_thread (arg&#x3D;0x7feb523ec700) at pthread_create.c:463<br>#13 0x00007feb530ad88f in clone () at …&#x2F;sysdeps&#x2F;unix&#x2F;sysv&#x2F;linux&#x2F;x86_64&#x2F;clone.S:95</p>
+<p><strong>Thread 2</strong> (Thread 0x7feb52bed700 (LWP 1954)):<br>#0 _lll<strong>lock_wait ()</strong> at …&#x2F;sysdeps&#x2F;unix&#x2F;sysv&#x2F;linux&#x2F;x86_64&#x2F;lowlevellock.S:135<br><strong>#1 0x00007feb53928023 in GI_pthread_mutex_lock (mutex&#x3D;0x5646aabe7180 ) at …&#x2F;nptl&#x2F;pthread_mutex_lock.c:78</strong><br>#2 0x00005646aa9e40bf in gthread_mutex_lock(pthread_mutex_t*) ()<br>#3 0x00005646aa9e4630 in std::mutex::lock() ()<br>#4 0x00005646aa9e46ac in std::lock_guardstd::mutex::lock_guard(std::mutex&amp;) ()<br>#5 0x00005646aa9e4183 in taskA() ()<br>#6 0x00005646aa9e4bdb in void std::invoke_impl&lt;void, void ()()&gt;(std::invoke_other, void (&amp;&amp;)()) ()<br>#7 0x00005646aa9e49e8 in std::invoke_result&lt;void ()()&gt;::type std::invoke&lt;void ()()&gt;(void (&amp;&amp;)()) ()<br>#8 0x00005646aa9e50b6 in decltype (invoke((_S_declval&lt;0ul&gt;)())) std::thread::_Invoker&lt;std::tuple&lt;void ()()&gt; &gt;::_M_invoke&lt;0ul&gt;(std::_Index_tuple&lt;0ul&gt;) ()<br>#9 0x00005646aa9e5072 in std::thread::_Invoker&lt;std::tuple&lt;void ()()&gt; &gt;::operator()() ()<br>#10 0x00005646aa9e5042 in std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;void ()()&gt; &gt; &gt;::_M_run() ()<br>#11 0x00007feb5365257f in ?? () from &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libstdc++.so.6<br>#12 0x00007feb539256db in start_thread (arg&#x3D;0x7feb52bed700) at pthread_create.c:463<br>#13 0x00007feb530ad88f in clone () at …&#x2F;sysdeps&#x2F;unix&#x2F;sysv&#x2F;linux&#x2F;x86_64&#x2F;clone.S:95</p>
+<p><strong>Thread 1</strong> (Thread 0x7feb53d4b740 (LWP 1953)):<br>—Type to continue, or q to quit—<br>#0 0x00007feb53926d2d in __GI___pthread_timedjoin_ex (threadid&#x3D;140648682280704, thread_return&#x3D;0x0, abstime&#x3D;0x0,<br>block&#x3D;) at pthread_join_common.c:89<br>#1 0x00007feb536527d3 in std::thread::join() () from &#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libstdc++.so.6<br>#2 0x00005646aa9e43bb in main ()<br>(gdb)</p>
+<p>从上面的线程调用栈信息可以看到，当前进程有三个线程，分别是<strong>Thread1是main线程，Thread2是taskA线程，Thread3是taskB线程。</strong></p>
+<p>从调用栈信息可以看到，Thread3线程进入S阻塞状态的原因是因为它最后在#0 _lll<strong>lock_wait ()</strong> at，也就是它在等待获取一把锁(lock_wait)，而且堆栈信息打印的很清晰，**#1 0x00007feb53928023 in GI_pthread_mutex_lock (mutex&#x3D;0x5646aabe7140 ) at …&#x2F;nptl&#x2F;pthread_mutex_lock.c:78**，Thread3在获取而获取不到，因此进入阻塞状态了。这里结合代码分析，Thread3线程（也就是taskB）最后在这里阻塞了：<br>void taskB()<br>{<br>&#x2F;&#x2F; 线程B先睡眠1s保证线程A先获取锁1<br>std::this_thread::sleep_for(std::chrono::seconds(1));<br>std::lock_guardstd::mutex lockB(mtx2);<br>std::cout &lt;&lt; “线程B获取锁2” &lt;&lt; std::endl;<br>&#x2F;&#x2F; 线程B尝试获取锁1<br><strong>std::lock_guardstd::mutex lockA(mtx1);</strong> &#x3D;&#x3D;&#x3D;》 这里阻塞了！如果不知道怎么定位到源代码行上，看下一小节！<br>std::cout &lt;&lt; “线程B获取锁1” &lt;&lt; std::endl;<br>std::cout &lt;&lt; “线程B释放所有锁资源，结束运行！” &lt;&lt; std::endl;<br>}</p>
+<p>既然定位到taskA和taskB线程阻塞的原因，都是因为锁获取不到，<strong>然后再结合源码进行分析定位，最终发现taskA之所以获取不到mtx2，是因为mtx2早被taskB线程获取了；同样taskB之所以获取不到mtx1，是因为mtx1早被taskA线程获取了，导致所有线程进入阻塞状态，等待锁资源的获取，但是又因为没有线程释放锁，最终导致死锁问题。</strong>（从各线程调用栈信息能看出来，这里面和I&#x2F;O网络事件没什么关系）</p>
+<h3 id="4-1-怎么在源码上定位到问题代码"><a href="#4-1-怎么在源码上定位到问题代码" class="headerlink" title="4.1 怎么在源码上定位到问题代码"></a>4.1 怎么在源码上定位到问题代码</h3><p>实际上，上面的代码运行一般是发布后的release版本，内部没有调试信息，我们如果想把死锁的原因定位到源码的某一行代码上，就需要一个debug版本（g++编译添加-g选项），操作如下：</p>
+<h4 id="1-编译命令"><a href="#1-编译命令" class="headerlink" title="1.编译命令"></a>1.编译命令</h4><p> <strong>g++ xx.cpp -g -lpthread</strong></p>
+<h4 id="2-运行代码"><a href="#2-运行代码" class="headerlink" title="2.运行代码"></a>2.运行代码</h4><p><strong>.&#x2F;a.out</strong><br>线程A获取锁1<br>线程B获取锁2<br>…(程序到这里不往下运行了)</p>
+<h4 id="3-gdb调试该进程"><a href="#3-gdb调试该进程" class="headerlink" title="3.gdb调试该进程"></a>3.gdb调试该进程</h4><p><strong>ps -ef | grep a.out</strong><br><strong>tony 2617 1535 0 12:32 pts&#x2F;0 00:00:00 .&#x2F;a.out</strong><br><strong>gdb attach 2617</strong></p>
+<h4 id="4-查看当前所有的线程"><a href="#4-查看当前所有的线程" class="headerlink" title="4.查看当前所有的线程"></a>4.查看当前所有的线程</h4><p><strong>(gdb) info threads</strong></p>
+<blockquote>
+<pre class=" language-C++"><code class="language-C++">Id   Target Id         Frame 
+* 1    Thread 0x7f8c63002740 (LWP 2617) "a.out" 0x00007f8c62bddd2d in __GI___pthread_timedjoin_ex (
+  threadid=140240914892544, thread_return=0x0, abstime=0x0, block=<optimized out>) at pthread_join_common.c:89
+2    Thread 0x7f8c61ea4700 (LWP 2618) "a.out" __lll_lock_wait () at ../sysdeps/unix/sysv/linux/x86_64/lowlevellock.S:135
+3    Thread 0x7f8c616a3700 (LWP 2619) "a.out" __lll_lock_wait () at ../sysdeps/unix/sysv/linux/x86_64/lowlevellock.S:135
+</code></pre>
+</blockquote>
+<p>可以看到有三个线程。</p>
+<h4 id="5-切换到线程2"><a href="#5-切换到线程2" class="headerlink" title="5.切换到线程2"></a><strong>5.切换到线程2</strong></h4><p><strong>(gdb) thread 2</strong></p>
+<h4 id="6-查看线程2目前的调用栈信息，where或者bt命令都可以"><a href="#6-查看线程2目前的调用栈信息，where或者bt命令都可以" class="headerlink" title="6.查看线程2目前的调用栈信息，where或者bt命令都可以"></a><strong>6.查看线程2目前的调用栈信息，where或者bt命令都可以</strong></h4><p><strong>(gdb) where</strong></p>
+<blockquote>
+<pre class=" language-C++"><code class="language-C++">(gdb) where
+#0  __lll_lock_wait () at ../sysdeps/unix/sysv/linux/x86_64/lowlevellock.S:135
+#1  0x00007f8c62bdf023 in __GI___pthread_mutex_lock (mutex=0x55678928e180 <mtx2>) at ../nptl/pthread_mutex_lock.c:78
+#2  0x000055678908b0bf in __gthread_mutex_lock (__mutex=0x55678928e180 <mtx2>)
+at /usr/include/x86_64-linux-gnu/c++/7/bits/gthr-default.h:748
+#3  0x000055678908b630 in std::mutex::lock (this=0x55678928e180 <mtx2>) at /usr/include/c++/7/bits/std_mutex.h:103
+#4  0x000055678908b6ac in std::lock_guard<std::mutex>::lock_guard (this=0x7f8c61ea3dc0, __m=...)
+at /usr/include/c++/7/bits/std_mutex.h:162
+#5  0x000055678908b183 in taskA () at 20190316.cpp:23
+#6  0x000055678908bbdb in std::__invoke_impl<void, void (*)()> (__f=@0x556789d78e78: 0x55678908b0f7 <taskA()>)
+at /usr/include/c++/7/bits/invoke.h:60
+#7  0x000055678908b9e8 in std::__invoke<void (*)()> (__fn=@0x556789d78e78: 0x55678908b0f7 <taskA()>)
+at /usr/include/c++/7/bits/invoke.h:95
+#8  0x000055678908c0b6 in std::thread::_Invoker<std::tuple<void (*)()> >::_M_invoke<0ul> (this=0x556789d78e78)
+at /usr/include/c++/7/thread:234
+#9  0x000055678908c072 in std::thread::_Invoker<std::tuple<void (*)()> >::operator() (this=0x556789d78e78)
+at /usr/include/c++/7/thread:243
+#10 0x000055678908c042 in std::thread::_State_impl<std::thread::_Invoker<std::tuple<void (*)()> > >::_M_run (
+this=0x556789d78e70) at /usr/include/c++/7/thread:186
+#11 0x00007f8c6290957f in ?? () from /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+#12 0x00007f8c62bdc6db in start_thread (arg=0x7f8c61ea4700) at pthread_create.c:463
+#13 0x00007f8c6236488f in clone () at ../sysdeps/unix/sysv/linux/x86_64/clone.S:95
+</code></pre>
+</blockquote>
+<h4 id="7-查看上面线程2的第5帧信息-5-0x000055678908b183-in-taskA-at-20190316-cpp-23"><a href="#7-查看上面线程2的第5帧信息-5-0x000055678908b183-in-taskA-at-20190316-cpp-23" class="headerlink" title="7.查看上面线程2的第5帧信息#5 0x000055678908b183 in taskA () at 20190316.cpp:23"></a>7.查看上面线程2的第5帧信息#5 0x000055678908b183 in taskA () at 20190316.cpp:23</h4><p><strong>(gdb) f 5</strong><br>#5 0x000055678908b183 in taskA () at 20190316.cpp:23<br>23 std::lock_guard&lt; std::mutex &gt; lockB(mtx2);<br>可以看到，这里就直接定位到代码一直阻塞在了20190316.cpp的第23行，对应的行代码是std::lock_guard&lt; std::mutex &gt; lockB(mtx2);</p>
+<p><strong>可以同样的步骤定位查看线程3的问题代码行。</strong></p>
+<h3 id="4-2死锁问题代码修改"><a href="#4-2死锁问题代码修改" class="headerlink" title="4.2死锁问题代码修改"></a>4.2死锁问题代码修改</h3><p>既然发现了问题，那么就知道这个问题场景发生死锁，是由于多个线程获取多个锁资源的时候，顺序不一致导致的死锁问题，那么保证它们获取锁的顺序是一致的，问题就可以解决，代码修改如下：</p>
+<blockquote>
+<pre class=" language-c++"><code class="language-c++">#include <iostream>           // std::cout
+#include <thread>             // std::thread
+#include <mutex>              // std::mutex, std::unique_lock
+#include <condition_variable> // std::condition_variable
+#include <vector>
+
+// 锁资源1
+std::mutex mtx1;
+// 锁资源2
+std::mutex mtx2;
+
+// 线程A的函数
+void taskA()
+&#123;
+// 保证线程A先获取锁1
+std::lock_guard<std::mutex> lockA(mtx1);
+std::cout << "线程A获取锁1" << std::endl;
+
+// 线程A尝试获取锁2
+std::lock_guard<std::mutex> lockB(mtx2);
+std::cout << "线程A获取锁2" << std::endl;
+
+std::cout << "线程A释放所有锁资源，结束运行！" << std::endl;
+&#125;
+
+// 线程B的函数
+void taskB()
+&#123;
+// 线程B获取锁1
+std::lock_guard<std::mutex> lockA(mtx1);
+std::cout << "线程B获取锁1" << std::endl;
+
+// 线程B尝试获取锁2
+std::lock_guard<std::mutex> lockB(mtx2);
+std::cout << "线程B获取锁2" << std::endl;
+
+std::cout << "线程B释放所有锁资源，结束运行！" << std::endl;
+&#125;
+int main()
+&#123;
+// 创建生产者和消费者线程
+std::thread t1(taskA);
+std::thread t2(taskB);
+
+// main主线程等待所有子线程执行完
+t1.join();
+t2.join();
+
+return 0;
+&#125;
+</code></pre>
+</blockquote>
+<p><strong>程序运行正常</strong>，打印如下：</p>
+<blockquote>
+<pre class=" language-c++"><code class="language-c++">线程A获取锁1
+线程A获取锁2
+线程A释放所有锁资源，结束运行！
+线程B获取锁1
+线程B获取锁2
+线程B释放所有锁资源，结束运行！
+</code></pre>
+</blockquote>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Merlin</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="http://MerlinCLZ.github.io/C-11-thread%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E4%BA%92%E6%96%A5%E5%92%8C%E5%90%8C%E6%AD%A5%E9%80%9A%E4%BF%A1-%E6%AD%BB%E9%94%81%E9%97%AE%E9%A2%98/">http://MerlinCLZ.github.io/C-11-thread%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E4%BA%92%E6%96%A5%E5%92%8C%E5%90%8C%E6%AD%A5%E9%80%9A%E4%BF%A1-%E6%AD%BB%E9%94%81%E9%97%AE%E9%A2%98/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Merlin</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">操作系统</span>
+                                </a>
+                            
+                                <a href="/tags/C-11/">
+                                    <span class="chip bg-color">C++11</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/%E5%9F%BA%E4%BA%8EC-11%E5%8F%AF%E5%8F%98%E5%8F%82%E6%A8%A1%E6%9D%BF%E5%AE%9E%E7%8E%B0%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E9%A1%B9%E7%9B%AE%E6%80%BB%E7%BB%93/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/9.jpg" class="responsive-img" alt="基于C++11可变参模板实现的线程池项目总结">
+                        
+                        <span class="card-title">基于C++11可变参模板实现的线程池项目总结</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2024-02-20
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            Merlin
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE/">
+                        <span class="chip bg-color">个人项目</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/Makedown%E4%B8%8ETypera%E6%95%99%E7%A8%8B/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/23.jpg" class="responsive-img" alt="Makedown与Typera教程">
+                        
+                        <span class="card-title">Makedown与Typera教程</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-01-11
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            Merlin
+                            
+                        </span>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+        <link rel="stylesheet" href="/libs/aplayer/APlayer.min.css">
+<style>
+    .aplayer .aplayer-lrc p {
+        
+        display: none;
+        
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px !important;
+    }
+
+    .aplayer .aplayer-lrc p.aplayer-lrc-current {
+        
+        display: none;
+        
+        font-size: 15px;
+        color: #42b983;
+    }
+
+    
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+        left: -66px !important;
+    }
+
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+        left: 0px !important;
+    }
+
+    
+</style>
+<div class="">
+    
+    <div class="row">
+        <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
+                   server="netease"
+                   type="playlist"
+                   id="503838841"
+                   fixed='true'
+                   autoplay='false'
+                   theme='#42b983'
+                   loop='all'
+                   order='random'
+                   preload='auto'
+                   volume='0.7'
+                   list-folded='true'
+        >
+        </meting-js>
+    </div>
+</div>
+
+<script src="/libs/aplayer/APlayer.min.js"></script>
+<script src="/libs/aplayer/Meting.min.js"></script>
+
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2024</span>
+            
+            <a href="/about" target="_blank">Merlin</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+            <br>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/MerlinClZ" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:11343235143@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=1134323514" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 1134323514" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+    
+
+     
+        <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+        <script src="/libs/others/TencentCaptcha.js"></script>
+        <button id="TencentCaptcha" data-appid="xxxxxxxxxx" data-cbfn="callback" type="button" hidden></button>
+    
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>
