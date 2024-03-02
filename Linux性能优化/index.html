@@ -5,8 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="1-Linux性能优化, Cheng Wenqing&#39;s Blog">
-    <meta name="description" content="01 | Linux性能优化性能指标是什么？学习性能优化的第一步，一定是了解“性能指标”这个概念。
-当看到性能指标时，首先想到“ 高并发”和“ 响应快”，而它们也正对应着性能优化的两个核心指标——“吞吐”和“延时”。这两个指标是 从应用负载">
+    <meta name="description" content="1 | Linux性能优化性能指标是什么？学习性能优化的第一步，一定是了解“性能指标”这个概念。
+当看到性能指标时，首先想到“ 高并发”和“ 响应快”，而它们也正对应着性能优化的两个核心指标——“吞吐”和“延时”。这两个指标是 从应用负载的">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -336,9 +336,9 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="01-Linux性能优化"><a href="#01-Linux性能优化" class="headerlink" title="01 | Linux性能优化"></a>01 | Linux性能优化</h1><h2 id="性能指标是什么？"><a href="#性能指标是什么？" class="headerlink" title="性能指标是什么？"></a>性能指标是什么？</h2><p>学习性能优化的第一步，一定是了解“性能指标”这个概念。</p>
+                <h1 id="1-Linux性能优化"><a href="#1-Linux性能优化" class="headerlink" title="1 | Linux性能优化"></a>1 | Linux性能优化</h1><h2 id="性能指标是什么？"><a href="#性能指标是什么？" class="headerlink" title="性能指标是什么？"></a>性能指标是什么？</h2><p>学习性能优化的第一步，一定是了解“性能指标”这个概念。</p>
 <p>当看到性能指标时，首先想到“ <strong>高并发</strong>”和“ <strong>响应快</strong>”，而它们也正对应着性能优化的两个核心指标——“吞吐”和“延时”。这两个指标是 <strong>从应用负载的视角</strong> 来考察性能，直接影响了产品终端的用户体验。跟它们对应的，是 <strong>从系统资源的视角</strong> 出发的指标，比如资源使用率、饱和度等。</p>
-<p>![](..&#x2F;..&#x2F;..&#x2F;..&#x2F;media&#x2F;merlin&#x2F;Elements SE&#x2F;项目&#x2F;linux远程监控项目&#x2F;031-Linux性能优化实战&#x2F;images&#x2F;69346&#x2F;920601da775da08844d231bc2b4c301d.png)</p>
+<p><img src="/./img/920601da775da08844d231bc2b4c301d.png" alt="920601da775da08844d231bc2b4c301d"></p>
 <p>随着应用负载的增加，系统资源的使用也会升高，甚至达到极限。而 <strong>性能问题的本质</strong>，就是系统资源已经达到瓶颈，但请求的处理却还不够快，无法支撑更多的请求。</p>
 <p>性能分析，其实就是 <strong>找出应用或系统的瓶颈，并设法去避免或者缓解它们</strong>，从而更高效地利用系统资源处理更多的请求。这包含了一系列的步骤，比如下面这六个步骤。</p>
 <ul>
@@ -365,12 +365,12 @@
 </li>
 </ul>
 <p>其实说到性能工具，就不得不提性能领域的大师布伦丹·格雷格（Brendan Gregg）。他不仅是动态追踪工具DTrace的作者，还开发了许许多多的性能工具。我相信你一定见过他所描绘的Linux性能工具图谱：</p>
-<p>![](..&#x2F;..&#x2F;..&#x2F;..&#x2F;media&#x2F;merlin&#x2F;Elements SE&#x2F;项目&#x2F;linux远程监控项目&#x2F;031-Linux性能优化实战&#x2F;images&#x2F;69346&#x2F;9ee6c1c5d88b0468af1a3280865a6b7a.png)</p>
+<p><img src="/./img/9ee6c1c5d88b0468af1a3280865a6b7a.png" alt="9ee6c1c5d88b0468af1a3280865a6b7a"></p>
 <p>（图片来自 <a target="_blank" rel="noopener" href="http://www.brendangregg.com/Perf/linux_perf_tools_full.png">brendangregg.com</a>）</p>
 <p>这个图是Linux性能分析最重要的参考资料之一，它告诉你，在Linux不同子系统出现性能问题后，应该用什么样的工具来观测和分析。</p>
 <p>比如，当遇到I&#x2F;O性能问题时，可以参考图片最下方的I&#x2F;O子系统，使用iostat、iotop、blktrace等工具分析磁盘I&#x2F;O的瓶颈。</p>
 <p>性能优化思维导图</p>
-<p>![](..&#x2F;..&#x2F;..&#x2F;..&#x2F;media&#x2F;merlin&#x2F;Elements SE&#x2F;项目&#x2F;linux远程监控项目&#x2F;031-Linux性能优化实战&#x2F;images&#x2F;69346&#x2F;0faf56cd9521e665f739b03dd04470ba.png)</p>
+<p><img src="/./img/0faf56cd9521e665f739b03dd04470ba.png" alt="0faf56cd9521e665f739b03dd04470ba"></p>
 
                 
             </div>
