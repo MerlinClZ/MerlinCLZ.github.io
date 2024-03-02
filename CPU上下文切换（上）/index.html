@@ -4,9 +4,10 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="1.链表基本操作, Cheng Wenqing&#39;s Blog">
-    <meta name="description" content="一 |链表: 基本操作24. 两两交换链表中的节点
-解析:  链表操作通常新建一个空头节点, 使用两个辅助指针 pre 和 cur，每次交换 cur 和 cur-&amp;gt;next 两个结点，交换终止条件为 pre 后面不存在两个未交换结点。">
+    <meta name="keywords" content="3-CPU上下文切换（上）, Cheng Wenqing&#39;s Blog">
+    <meta name="description" content="3 | 经常说的 CPU 上下文切换是什么意思？（上）多个进程竞争 会导致CPU 平均负载升高
+进程在竞争 CPU 的时候并没有真正运行，为什么还会导致系统的负载升高呢？CPU 上下文切换就是罪魁祸首。
+Linux 是一个多任务操作系统，它">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -18,7 +19,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>1.链表基本操作 | Cheng Wenqing&#39;s Blog</title>
+    <title>3-CPU上下文切换（上） | Cheng Wenqing&#39;s Blog</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -270,12 +271,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/8.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">1.链表基本操作</h1>
+                    <h1 class="description center-align post-title">3-CPU上下文切换（上）</h1>
                 </div>
             </div>
         </div>
@@ -299,12 +300,8 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/">
-                                <span class="chip bg-color">数据结构与算法</span>
-                            </a>
-                        
-                            <a href="/tags/%E9%93%BE%E8%A1%A8/">
-                                <span class="chip bg-color">链表</span>
+                            <a href="/tags/Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+                                <span class="chip bg-color">Linux性能优化</span>
                             </a>
                         
                     </div>
@@ -319,7 +316,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2023-12-12
+                    2023-07-19
                 </div>
                 
 
@@ -340,175 +337,81 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="一-链表-基本操作"><a href="#一-链表-基本操作" class="headerlink" title="一 |链表: 基本操作"></a>一 |链表: 基本操作</h1><h2 id="24-两两交换链表中的节点"><a href="#24-两两交换链表中的节点" class="headerlink" title="24. 两两交换链表中的节点"></a>24. 两两交换链表中的节点</h2><p><img src="/../img/24.png" alt="24"></p>
-<p><strong>解析:</strong>  链表操作通常新建一个空头节点, 使用两个辅助指针 pre 和 cur，每次交换 cur 和 cur-&gt;next 两个结点，交换终止条件为 pre 后面不存在两个未交换结点。</p>
-<blockquote>
-<pre class=" language-c++"><code class="language-c++">class Solution &#123;
-public:
-ListNode* swapPairs(ListNode* head) &#123;
-  ListNode *dummy = new ListNode(0);
-  dummy->next = head;
-  //0为新建头节点
-  // 0 -> 1 -> 2 -> 3 -> 4
-  // pre  cur  next
-  ListNode *pre = dummy, *cur = dummy->next;
-  while (cur && cur->next) &#123;
-      ListNode *next = cur->next;
-      pre->next = next;
-      cur->next = next->next;
-      next->next = cur;
-      pre = cur;
-      cur = cur->next;
-  &#125;
-
-  return dummy->next;
-&#125;
-&#125;;
-</code></pre>
-</blockquote>
-<h2 id="61-旋转链表"><a href="#61-旋转链表" class="headerlink" title="61. 旋转链表"></a>61. 旋转链表</h2><img src="../img/61.png" alt="61" style="zoom:100%;" />
-
-<p><strong>解析:</strong> </p>
-<img src="../img/61.0.png" alt="61.0" style="zoom: 50%;" />
-
-<p>1.将链表尾部指向头节点 成环</p>
-<p>2.将头节点移动n-k个节点</p>
-<p>3.断开连接</p>
-<blockquote>
-<pre class=" language-c++"><code class="language-c++">/*struct ListNode&#123;
-int val;
-Listnode* next;
-ListNode():val(0),next(nullptr)&#123;&#125;
-ListNode(int x):val(x),next(nullptr)&#123;&#125;
-ListNode(int x,ListNode *next):val(x),next(nxet)&#123;&#125;
-&#125;
-*/
-class Solution &#123;
-public:
-ListNode* rotateRight(ListNode* head, int k) &#123;
-  if (!head) return nullptr;
-
-  // 尾结点指向头结点
-  ListNode *cur = head;
-  int n = 1;
-  while (cur->next) cur = cur->next, n++;
-  cur->next = head;
-
-  // 找到分段点
-  for (int i = 0; i < n - k % n; i++) &#123;
-      cur = cur->next;
-  &#125;
-
-  // 从分段点切开
-  head = cur->next;
-  cur->next = nullptr;
-
-  return head;
-&#125;
-&#125;;
-</code></pre>
-</blockquote>
-<h2 id="86-分割链表"><a href="#86-分割链表" class="headerlink" title="86. 分割链表"></a>86. 分割链表</h2><p><img src="/../img/86.png" alt="86"></p>
-<p><strong>解析:</strong>  1 -&gt; 4  -&gt; 3 -&gt; 2 -&gt; 5 -&gt; 2 </p>
-<p>​            lh 1-&gt;2-&gt;2   rh 4-&gt;3-&gt;5</p>
-<p>1.定义左右两个链表 , 将小于x的值插入到左链表 , 大于等于x的值插入到右链表</p>
-<p>2.将左链表尾指针指向右链表头指针 , 为避免成环把右链表尾指针置为空 , 返回左链表头指针</p>
-<p><img src="/../img/86.1.png" alt="86.1"></p>
-<blockquote>
-<pre class=" language-c++"><code class="language-c++">class Solution &#123;
-public:
-ListNode* partition(ListNode* head, int x) &#123;
-  //定义两个指针分别指向左侧链表和右侧链表
-  ListNode* lh=new ListNode(0),*l=lh;
-  ListNode *rh =new ListNode(0),*r=rh;
-
-  for(ListNode *cur=head;cur;cur=cur->next)&#123;
-       if(cur->val<x)&#123;
-       l = l->next=cur;&#125;
-   else r=r->next=cur;
-  &#125;
-  l->next=rh->next;
-  r->next=nullptr;
-  return lh->next;
-&#125;
- //2.
- /*ListNode *cur=head;
- while(cur)
- &#123;
-     if(cur->val<x)
-     &#123;
-         l->next=cur;
-         l=l->next;
-     &#125;else
-     &#123;
-         r->next=cur;
-         r=r->next;
-     &#125;
-     cur=cur->next;
- &#125;*/
-
-&#125;;
-</code></pre>
-</blockquote>
-<h2 id="328-奇偶链表"><a href="#328-奇偶链表" class="headerlink" title="328. 奇偶链表"></a>328. 奇偶链表</h2><p><img src="/../img/328.png" alt="328"></p>
-<p><strong>解析:</strong></p>
-<p>如果链表为空，则直接返回链表。奇偶链表分离 </p>
-<p>将原链表拆分成奇数节点链表和偶数节点链表，之后再将两个链表进行连接即可。</p>
-<p><img src="/../img/328.1.png" alt="328.1"></p>
-<blockquote>
-<pre class=" language-c++"><code class="language-c++">//解1.
-public:
-ListNode* oddEvenList(ListNode* head) &#123;
-   if (head == nullptr) &#123;
-      return head;
-  &#125;
-  ListNode *odd=head;
-  ListNode *eventhead=head->next;
-  ListNode *event=eventhead;
-
-  while(event&&event->next)&#123;
-      odd->next=event->next;
-      odd=odd->next;
-      event->next=odd->next;
-      event=event->next;
-  &#125;
-  odd->next=eventhead;
-  return head;
-&#125;
-&#125;;
-
-
-//解2.
-class Solution &#123;
-public:
-ListNode* oddEvenList(ListNode* head) &#123;
-  ListNode* oddHead = new ListNode(0);
-  ListNode* oddTail = oddHead;
-  ListNode* evenHead = new ListNode(0);
-  ListNode* evenTail = evenHead;
-
-  ListNode* cur = head;
-
-  bool isOdd = true;
-  while (cur) &#123;
-      if (isOdd) &#123;
-          oddTail->next = cur;
-          oddTail = oddTail->next;
-      &#125; else &#123;
-          evenTail->next = cur;
-          evenTail = evenTail->next;
-      &#125;
-      cur = cur->next;
-      isOdd = !isOdd;
-  &#125;
-  oddTail->next = evenHead->next;
-  evenTail->next = NULL;
-
-  return oddHead->next;
-&#125;
-&#125;;
-</code></pre>
-</blockquote>
+                <h1 id="3-经常说的-CPU-上下文切换是什么意思？（上）"><a href="#3-经常说的-CPU-上下文切换是什么意思？（上）" class="headerlink" title="3 | 经常说的 CPU 上下文切换是什么意思？（上）"></a>3 | 经常说的 CPU 上下文切换是什么意思？（上）</h1><p><strong>多个进程竞争 会导致CPU 平均负载升高</strong></p>
+<p>进程在竞争 CPU 的时候并没有真正运行，为什么还会导致系统的负载升高呢？CPU 上下文切换就是罪魁祸首。</p>
+<p>Linux 是一个多任务操作系统，它支持远大于 CPU 数量的任务同时运行。当然，这些任务实际上并不是真的在同时运行，而是因为系统在很短的时间内，将 CPU 轮流分配给它们，造成多任务同时运行的错觉。</p>
+<p>而在每个任务运行前，CPU 都需要知道任务从哪里加载、又从哪里开始运行，也就是说，需要系统事先帮它设置好 <strong>CPU 寄存器和程序计数器</strong>（Program Counter，PC）。</p>
+<p>CPU 寄存器，是 CPU 内置的容量小、但速度极快的内存。而程序计数器，则是用来存储 CPU 正在执行的指令位置、或者即将执行的下一条指令位置。它们都是 CPU 在运行任何任务前，必须的依赖环境，因此也被叫做 <strong>CPU 上下文</strong>。</p>
+<p>![](..&#x2F;..&#x2F;..&#x2F;..&#x2F;media&#x2F;merlin&#x2F;Elements SE&#x2F;项目&#x2F;linux远程监控项目&#x2F;031-Linux性能优化实战&#x2F;images&#x2F;69859&#x2F;98ac9df2593a193d6a7f1767cd68eb5f.png)</p>
+<p>知道了什么是 CPU 上下文，很容易理解 <strong>CPU 上下文切换</strong>。CPU 上下文切换，就是先把前一个任务的 CPU 上下文（也就是 CPU 寄存器和程序计数器）保存起来，然后加载新任务的上下文到这些寄存器和程序计数器，最后再跳转到程序计数器所指的新位置，运行新任务。</p>
+<p>而这些保存下来的上下文，会存储在系统内核中，并在任务重新调度执行时再次加载进来。这样就能保证任务原来的状态不受影响，让任务看起来还是连续运行。</p>
+<p>我猜肯定会有人说，CPU 上下文切换无非就是更新了 CPU 寄存器的值嘛，但这些寄存器，本身就是为了快速运行任务而设计的，为什么会影响系统的 CPU 性能呢？</p>
+<p>操作系统管理的这些“任务”到底是什么？</p>
+<p>任务有：进程、线程、硬件中断（硬件通过触发信号，会导致中断处理程序的调用）</p>
+<p>所以，根据任务的不同，<strong>CPU的上下文切换</strong>就可以分为几个不同的场景，也就是 <strong>进程上下文切换</strong>、 <strong>线程上下文切换</strong> 以及 <strong>中断上下文切换</strong>。</p>
+<h2 id="进程上下文切换"><a href="#进程上下文切换" class="headerlink" title="进程上下文切换"></a>进程上下文切换</h2><p>Linux 按照特权等级，把进程的运行空间分为内核空间和用户空间，分别对应着下图中， CPU 特权等级的 Ring 0 和 Ring 3。</p>
+<ul>
+<li><p>内核空间（Ring 0）具有最高权限，可以直接访问所有资源；</p>
+</li>
+<li><p>用户空间（Ring 3）只能访问受限资源，不能直接访问内存等硬件设备，必须通过系统调用陷入到内核中，才能访问这些特权资源。</p>
+</li>
+</ul>
+<p>![](..&#x2F;..&#x2F;..&#x2F;..&#x2F;media&#x2F;merlin&#x2F;Elements SE&#x2F;项目&#x2F;linux远程监控项目&#x2F;031-Linux性能优化实战&#x2F;images&#x2F;69859&#x2F;4d3f622f272c49132ecb9760310ce1a7.png)</p>
+<p>换个角度看，也就是说，进程既可以在用户空间运行，又可以在内核空间中运行。进程在用户空间运行时，被称为进程的用户态，而陷入内核空间的时候，被称为进程的内核态。</p>
+<p>从用户态到内核态的转变，需要通过 <strong>系统调用</strong> 来完成。比如，当我们查看文件内容时，就需要多次系统调用来完成：首先调用 open() 打开文件，然后调用 read() 读取文件内容，并调用 write() 将内容写到标准输出，最后再调用 close() 关闭文件。</p>
+<p>那么，系统调用的过程有没有发生 CPU 上下文的切换呢？答案自然是肯定的。</p>
+<p>CPU 寄存器里原来用户态的指令位置，需要先保存起来。接着，为了执行内核态代码，CPU 寄存器需要更新为内核态指令的新位置。最后才是跳转到内核态运行内核任务。</p>
+<p>而系统调用结束后，CPU寄存器需要 <strong>恢复</strong> 原来保存的用户态，然后再切换到用户空间，继续运行进程。所以，一次系统调用的过程，其实是发生了两次 CPU 上下文切换。</p>
+<p>不过，需要注意的是，系统调用过程中，并不会涉及到虚拟内存等进程用户态的资源，也不会切换进程。这跟我们通常所说的进程上下文切换是不一样的：</p>
+<ul>
+<li><p>进程上下文切换，是指从一个进程切换到另一个进程运行。</p>
+</li>
+<li><p>而系统调用过程中一直是同一个进程在运行。</p>
+</li>
+</ul>
+<p>所以， <strong>系统调用过程通常称为特权模式切换，而不是上下文切换</strong>。但实际上，系统调用过程中，CPU 的上下文切换还是无法避免的。</p>
+<p>那么，进程上下文切换跟系统调用又有什么区别呢？</p>
+<p><strong>进程是由内核来管理和调度的，进程的切换只能发生在内核态。</strong>所以，<strong>进程的上下文不仅包括了虚拟内存、栈、全局变量等用户空间的资源，还包括了内核堆栈、寄存器等内核空间的状态。</strong></p>
+<p>因此，进程的上下文切换就比系统调用时多了一步：在保存当前进程的内核状态和CPU寄存器之前，需要先把该进程的虚拟内存、栈等保存下来；而加载了下一进程的内核态后，还需要刷新进程的虚拟内存和用户栈。</p>
+<p>如下图所示，保存上下文和恢复上下文的过程并不是“免费”的，需要内核在 CPU 上运行才能完成。</p>
+<p>![](..&#x2F;..&#x2F;..&#x2F;..&#x2F;media&#x2F;merlin&#x2F;Elements SE&#x2F;项目&#x2F;linux远程监控项目&#x2F;031-Linux性能优化实战&#x2F;images&#x2F;69859&#x2F;395666667d77e718da63261be478a96b.png)</p>
+<p>根据 <a target="_blank" rel="noopener" href="https://blog.tsunanet.net/2010/11/how-long-does-it-take-to-make-context.html">Tsuna</a> 的测试报告，每次上下文切换都需要几十纳秒到数微秒的 CPU 时间。这个时间还是相当可观的，特别是在进程上下文切换次数较多的情况下，很容易导致 CPU 将大量时间耗费在寄存器、内核栈以及虚拟内存等资源的保存和恢复上，进而大大缩短了真正运行进程的时间。这也正是导致平均负载升高的一个重要因素。</p>
+<p>另外， Linux 通过 TLB（Translation Lookaside Buffer）来管理虚拟内存到物理内存的映射关系。当虚拟内存更新后，TLB 也需要刷新，内存的访问也会随之变慢。特别是在多处理器系统上，缓存是被多个处理器共享的，刷新缓存不仅会影响当前处理器的进程，还会影响共享缓存的其他处理器的进程。</p>
+<p>知道了进程上下文切换潜在的性能问题后，究竟什么时候会切换进程上下文。</p>
+<p>显然，进程切换时才需要切换上下文，换句话说，只有在进程调度的时候，才需要切换上下文。Linux 为每个 CPU 都维护了一个就绪队列，将活跃进程（即正在运行和正在等待CPU的进程）按照优先级和等待 CPU 的时间排序，然后选择最需要 CPU 的进程，也就是优先级最高和等待CPU时间最长的进程来运行。</p>
+<p>那么，进程在什么时候才会被调度到 CPU 上运行呢？</p>
+<p>最容易想到的一个时机，就是进程执行完终止了，它之前使用的CPU会释放出来，这个时候再从就绪队列里，拿一个新的进程过来运行。其实还有很多其他场景，也会触发进程调度，在这里我给你逐个梳理下。</p>
+<p>其一，为了保证所有进程可以得到公平调度，CPU时间被划分为一段段的时间片，这些时间片再被轮流分配给各个进程。这样，当某个进程的时间片耗尽了，就会被系统挂起，切换到其它正在等待 CPU 的进程运行。</p>
+<p>其二，进程在系统资源不足（比如内存不足）时，要等到资源满足后才可以运行，这个时候进程也会被挂起，并由系统调度其他进程运行。</p>
+<p>其三，当进程通过睡眠函数 sleep 这样的方法将自己主动挂起时，自然也会重新调度。</p>
+<p>其四，当有优先级更高的进程运行时，为了保证高优先级进程的运行，当前进程会被挂起，由高优先级进程来运行。</p>
+<p>最后一个，发生硬件中断时，CPU上的进程会被中断挂起，转而执行内核中的中断服务程序。</p>
+<p>了解这几个场景是非常有必要的，因为一旦出现上下文切换的性能问题，它们就是幕后凶手。</p>
+<h2 id="线程上下文切换"><a href="#线程上下文切换" class="headerlink" title="线程上下文切换"></a>线程上下文切换</h2><p>线程与进程最大的区别在于， <strong>线程是调度的基本单位，而进程则是资源拥有的基本单位</strong>。说白了，所谓内核中的任务调度，实际上的调度对象是线程；而进程只是给线程提供了虚拟内存、全局变量等资源。所以，对于线程和进程，我们可以这么理解：</p>
+<ul>
+<li><p>当进程只有一个线程时，可以认为进程就等于线程。</p>
+</li>
+<li><p>当进程拥有多个线程时，这些线程会共享相同的虚拟内存和全局变量等资源。这些资源在上下文切换时是不需要修改的。</p>
+</li>
+<li><p>另外，线程也有自己的私有数据，比如栈和寄存器等，这些在上下文切换时也是需要保存的。</p>
+</li>
+</ul>
+<p>这么一来，线程的上下文切换其实就可以分为两种情况：</p>
+<p>第一种， 前后两个线程属于不同进程。此时，因为资源不共享，所以切换过程就跟进程上下文切换是一样。</p>
+<p>第二种，前后两个线程属于同一个进程。此时，因为虚拟内存是共享的，所以在切换时，虚拟内存这些资源就保持不动，只需要切换线程的私有数据、寄存器等不共享的数据。</p>
+<p>虽然同为上下文切换，但同进程内的线程切换，要比多进程间的切换消耗更少的资源，而这，也正是多线程代替多进程的一个优势。</p>
+<h2 id="中断上下文切换"><a href="#中断上下文切换" class="headerlink" title="中断上下文切换"></a>中断上下文切换</h2><p>除了前面两种上下文切换，还有一个场景也会切换 CPU 上下文，那就是中断。</p>
+<p>为了快速响应硬件的事件， <strong>中断处理会打断进程的正常调度和执行</strong>，转而调用中断处理程序，响应设备事件。而在打断其他进程时，就需要将进程当前的状态保存下来，这样在中断结束后，进程仍然可以从原来的状态恢复运行。</p>
+<p>跟进程上下文不同，中断上下文切换并不涉及到进程的用户态。所以，即便中断过程打断了一个正处在用户态的进程，也不需要保存和恢复这个进程的虚拟内存、全局变量等用户态资源。中断上下文，其实只包括内核态中断服务程序执行所必需的状态，包括CPU 寄存器、内核堆栈、硬件中断参数等。</p>
+<p><strong>对同一个 CPU 来说，中断处理比进程拥有更高的优先级</strong>，所以中断上下文切换并不会与进程上下文切换同时发生。同样道理，由于中断会打断正常进程的调度和执行，所以大部分中断处理程序都短小精悍，以便尽可能快的执行结束。</p>
+<p>另外，跟进程上下文切换一样，中断上下文切换也需要消耗CPU，切换次数过多也会耗费大量的 CPU，甚至严重降低系统的整体性能。所以，当你发现中断次数过多时，就需要注意去排查它是否会给你的系统带来严重的性能问题。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>总结一下，不管是哪种场景导致的上下文切换应该知道：</p>
+<ol>
+<li><p>CPU 上下文切换，是保证 Linux 系统正常工作的核心功能之一，一般情况下不需要我们特别关注。</p>
+</li>
+<li><p>但过多的上下文切换，会把CPU时间消耗在寄存器、内核栈以及虚拟内存等数据的保存和恢复上，从而缩短进程真正运行的时间，导致系统的整体性能大幅下降。</p>
+</li>
+</ol>
 
                 
             </div>
@@ -535,7 +438,7 @@ ListNode* oddEvenList(ListNode* head) &#123;
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://MerlinCLZ.github.io/1-%E9%93%BE%E8%A1%A8%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C/">http://MerlinCLZ.github.io/1-%E9%93%BE%E8%A1%A8%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C/</a>
+                    <a href="http://MerlinCLZ.github.io/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2%EF%BC%88%E4%B8%8A%EF%BC%89/">http://MerlinCLZ.github.io/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2%EF%BC%88%E4%B8%8A%EF%BC%89/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -573,12 +476,8 @@ ListNode* oddEvenList(ListNode* head) &#123;
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/">
-                                    <span class="chip bg-color">数据结构与算法</span>
-                                </a>
-                            
-                                <a href="/tags/%E9%93%BE%E8%A1%A8/">
-                                    <span class="chip bg-color">链表</span>
+                                <a href="/tags/Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+                                    <span class="chip bg-color">Linux性能优化</span>
                                 </a>
                             
                         </div>
@@ -628,13 +527,13 @@ ListNode* oddEvenList(ListNode* head) &#123;
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/Makedown%E4%B8%8ETypera%E6%95%99%E7%A8%8B/">
+                <a href="/CPU%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2%EF%BC%88%E4%B8%8B%EF%BC%89/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/23.jpg" class="responsive-img" alt="Makedown与Typera教程">
+                        <img src="/medias/featureimages/19.jpg" class="responsive-img" alt="3-CPU上下文切换（下）">
                         
-                        <span class="card-title">Makedown与Typera教程</span>
+                        <span class="card-title">3-CPU上下文切换（下）</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -645,7 +544,7 @@ ListNode* oddEvenList(ListNode* head) &#123;
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2024-01-11
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-07-20
                         </span>
                         <span class="publish-author">
                             
@@ -654,6 +553,14 @@ ListNode* oddEvenList(ListNode* head) &#123;
                             
                         </span>
                     </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+                        <span class="chip bg-color">Linux性能优化</span>
+                    </a>
+                    
                 </div>
                 
             </div>
@@ -665,13 +572,13 @@ ListNode* oddEvenList(ListNode* head) &#123;
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/%E7%AC%AC0%E7%AB%A0%20%E5%BC%80%E7%AF%87%E4%BB%8B%E7%BB%8D/">
+                <a href="/CPU%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/22.jpg" class="responsive-img" alt="算法">
+                        <img src="/medias/featureimages/17.jpg" class="responsive-img" alt="2-CPU平均负载">
                         
-                        <span class="card-title">算法</span>
+                        <span class="card-title">2-CPU平均负载</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -682,7 +589,7 @@ ListNode* oddEvenList(ListNode* head) &#123;
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2023-08-20
+                                <i class="far fa-clock fa-fw icon-date"></i>2023-07-15
                             </span>
                         <span class="publish-author">
                             
@@ -695,8 +602,8 @@ ListNode* oddEvenList(ListNode* head) &#123;
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/Leetcode/">
-                        <span class="chip bg-color">Leetcode</span>
+                    <a href="/tags/Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+                        <span class="chip bg-color">Linux性能优化</span>
                     </a>
                     
                 </div>
