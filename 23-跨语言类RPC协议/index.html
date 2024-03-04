@@ -4,9 +4,9 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="17-DNS协议, Cheng Wenqing&#39;s Blog">
-    <meta name="description" content="第17讲 | DNS协议前面我们讲了平时常见的看新闻、支付、直播、下载等场景，现在网站的数目非常多，常用的网站就有二三十个，如果全部用IP地址进行访问，恐怕很难记住。于是，就需要一个地址簿，根据名称，就可以查看具体的地址。
-例如，我要去西湖">
+    <meta name="keywords" content="23-跨语言类RPC协议, Cheng Wenqing&#39;s Blog">
+    <meta name="description" content="第23讲 | 跨语言类RPC协议到目前为止，咱们讲了四种RPC，分别是ONC RPC、基于XML的SOAP、基于JSON的RESTful和Hessian2。
+通过学习，我们知道，二进制的传输性能好，文本类的传输性能差一些；二进制的难以跨语言">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -18,7 +18,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>17-DNS协议 | Cheng Wenqing&#39;s Blog</title>
+    <title>23-跨语言类RPC协议 | Cheng Wenqing&#39;s Blog</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -270,12 +270,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/7.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/16.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">17-DNS协议</h1>
+                    <h1 class="description center-align post-title">23-跨语言类RPC协议</h1>
                 </div>
             </div>
         </div>
@@ -315,7 +315,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2023-03-25
+                    2023-04-14
                 </div>
                 
 
@@ -336,90 +336,116 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="第17讲-DNS协议"><a href="#第17讲-DNS协议" class="headerlink" title="第17讲 | DNS协议"></a>第17讲 | DNS协议</h1><p>前面我们讲了平时常见的看新闻、支付、直播、下载等场景，现在网站的数目非常多，常用的网站就有二三十个，如果全部用IP地址进行访问，恐怕很难记住。于是，就需要一个地址簿，根据名称，就可以查看具体的地址。</p>
-<p>例如，我要去西湖边的“外婆家”，这就是名称，然后通过地址簿，查看到底是哪条路多少号。</p>
-<h2 id="DNS服务器"><a href="#DNS服务器" class="headerlink" title="DNS服务器"></a>DNS服务器</h2><p>在网络世界，也是这样的。你肯定记得住网站的名称，但是很难记住网站的IP地址，因而也需要一个地址簿，就是 <strong>DNS服务器</strong>。</p>
-<p>由此可见，DNS在日常生活中多么重要。每个人上网，都需要访问它，但是同时，这对它来讲也是非常大的挑战。一旦它出了故障，整个互联网都将瘫痪。另外，上网的人分布在全世界各地，如果大家都去同一个地方访问某一台服务器，时延将会非常大。因而， <strong>DNS服务器，一定要设置成高可用、高并发和分布式的</strong>。</p>
-<p>于是，就有了这样 <strong>树状的层次结构</strong>。</p>
-<p><img src="/./img/images/9895/890ff98fde625c6a60fb71yy22d8184d.jpg">- 根DNS服务器 ：返回顶级域DNS服务器的IP地址</p>
+                <h1 id="第23讲-跨语言类RPC协议"><a href="#第23讲-跨语言类RPC协议" class="headerlink" title="第23讲 | 跨语言类RPC协议"></a>第23讲 | 跨语言类RPC协议</h1><p>到目前为止，咱们讲了四种RPC，分别是ONC RPC、基于XML的SOAP、基于JSON的RESTful和Hessian2。</p>
+<p>通过学习，我们知道，二进制的传输性能好，文本类的传输性能差一些；二进制的难以跨语言，文本类的可以跨语言；要写协议文件的严谨一些，不写协议文件的灵活一些。虽然都有服务发现机制，有的可以进行服务治理，有的则没有。</p>
+<p>我们也看到了RPC从最初的客户端服务器模式，最终演进到微服务。对于RPC框架的要求越来越多了，具体有哪些要求呢？</p>
 <ul>
-<li><p>顶级域DNS服务器：返回权威DNS服务器的IP地址</p>
+<li><p>首先，传输性能很重要。因为服务之间的调用如此频繁了，还是二进制的越快越好。</p>
 </li>
-<li><p>权威DNS服务器 ：返回相应主机的IP地址</p>
+<li><p>其次，跨语言很重要。因为服务多了，什么语言写成的都有，而且不同的场景适宜用不同的语言，不能一个语言走到底。</p>
+</li>
+<li><p>最好既严谨又灵活，添加个字段不用重新编译和发布程序。</p>
+</li>
+<li><p>最好既有服务发现，也有服务治理，就像Dubbo和Spring Cloud一样。</p>
 </li>
 </ul>
-<h2 id="DNS解析流程"><a href="#DNS解析流程" class="headerlink" title="DNS解析流程"></a>DNS解析流程</h2><p>为了提高DNS的解析性能，很多网络都会就近部署DNS缓存服务器。于是，就有了以下的DNS解析流程。</p>
-<ol>
-<li><p>电脑客户端会发出一个DNS请求，问<a target="_blank" rel="noopener" href="http://www.163.com的ip是啥啊,并发给本地域名服务器/">www.163.com的IP是啥啊，并发给本地域名服务器</a> (本地DNS)。那本地域名服务器 (本地DNS) 是什么呢？如果是通过DHCP配置，本地DNS由你的网络服务商（ISP），如电信、移动等自动分配，它通常就在你网络服务商的某个机房。</p>
+<h2 id="Protocol-Buffers"><a href="#Protocol-Buffers" class="headerlink" title="Protocol Buffers"></a>Protocol Buffers</h2><p>这是要多快好省地建设社会主义啊。理想还是要有的嘛，这里我就来介绍一个向“理想”迈进的GRPC。</p>
+<p>GRPC首先满足二进制和跨语言这两条，二进制说明压缩效率高，跨语言说明更灵活。但是又是二进制，又是跨语言，这就相当于两个人沟通，你不但说方言，还说缩略语，人家怎么听懂呢？所以，最好双方弄一个协议约定文件，里面规定好双方沟通的专业术语，这样沟通就顺畅多了。</p>
+<p>对于GRPC来讲，二进制序列化协议是Protocol Buffers。首先，需要定义一个协议文件.proto。</p>
+<pre><code>syntax = “proto3”;
+package com.geektime.grpc
+option java_package = “com.geektime.grpc”;
+message Order &#123;
+  required string date = 1;
+  required string classname = 2;
+  required string author = 3;
+  required int price = 4;
+&#125;
+
+message OrderResponse &#123;
+  required string message = 1;
+&#125;
+
+service PurchaseOrder &#123;
+  rpc Purchase (Order) returns (OrderResponse) &#123;&#125;
+&#125;
+</code></pre>
+<p>在这个协议文件中，我们首先指定使用proto3的语法，然后我们使用Protocol Buffers的语法，定义<strong>两个消息的类型</strong>，一个是发出去的参数，一个是返回的结果。里面的每一个字段，例如date、classname、author、price都有唯一的一个数字标识，这样在压缩的时候，就不用传输字段名称了，只传输这个数字标识就行了，能节省很多空间。</p>
+<p>最后定义一个<strong>Service，里面会有一个RPC调用的声明</strong>。</p>
+<p>无论使用什么语言，都有相应的工具生成客户端和服务端的Stub程序，这样客户端就可以像调用本地一样，调用远程的服务了。</p>
+<h2 id="协议约定问题"><a href="#协议约定问题" class="headerlink" title="协议约定问题"></a>协议约定问题</h2><p>Protocol Buffers是一款压缩效率极高的序列化协议，有很多设计精巧的序列化方法。</p>
+<p>对于int类型32位的，一般都需要4个Byte进行存储。在Protocol Buffers中，使用的是变长整数的形式。对于每一个Byte的8位，最高位都有特殊的含义。</p>
+<p>如果该位为 1，表示这个数字没完，后续的Byte也属于这个数字；如果该位为 0，则这个数字到此结束。其他的7个Bit才是用来表示数字的内容。因此，小于128的数字都可以用一个Byte表示；大于128的数字，比如130，会用两个字节来表示。</p>
+<p>对于每一个字段，使用的是TLV（Tag，Length，Value）的存储办法。</p>
+<p>其中Tag &#x3D; (field_num &lt;&lt; 3) | wire_type。field_num就是在proto文件中，给每个字段指定唯一的数字标识，而wire_type用于标识后面的数据类型。</p>
+<p><img src="/./img/images/12819/a66aa9ca6c6575f4b335881ae786ba10.jpg"></p>
+<p>例如，对于string author &#x3D; 3，在这里field_num为3，string的wire_type为2，于是 (field_num &lt;&lt; 3) | wire_type &#x3D; (11000) | 10 &#x3D; 11010 &#x3D; 26；接下来是Length，最后是Value为“liuchao”，如果使用UTF-8编码，长度为7个字符，因而Length为7。</p>
+<p>可见，在序列化效率方面，Protocol Buffers简直做到了极致。</p>
+<p>在灵活性方面，这种基于协议文件的二进制压缩协议往往存在更新不方便的问题。例如，客户端和服务器因为需求的改变需要添加或者删除字段。</p>
+<p>这一点上，Protocol Buffers考虑了兼容性。在上面的协议文件中，每一个字段都有修饰符。比如：</p>
+<ul>
+<li><p>required：这个值不能为空，一定要有这么一个字段出现；</p>
 </li>
-<li><p>本地DNS收到来自客户端的请求。你可以想象这台服务器上缓存了一张域名与之对应IP地址的大表格。如果能找到 <a href="http://www.163.com，它就直接返回IP地址。如果没有，本地DNS会去问它的根域名服务器：“老大，能告诉我www.163.com的IP地址吗？”根域名服务器是最高层次的，全球共有13套。它不直接用于域名解析，但能指明一条道路。">www.163.com，它就直接返回IP地址。如果没有，本地DNS会去问它的根域名服务器：“老大，能告诉我www.163.com的IP地址吗？”根域名服务器是最高层次的，全球共有13套。它不直接用于域名解析，但能指明一条道路。</a></p>
+<li><p>optional：可选字段，可以设置，也可以不设置，如果不设置，则使用默认值；</p>
 </li>
-<li><p>根DNS收到来自本地DNS的请求，发现后缀是 .com，说：“哦，<a target="_blank" rel="noopener" href="http://www.163.com啊,这个域名是由.com区域管理,我给你它的顶级域名服务器的地址,你去问问它吧.”/">www.163.com啊，这个域名是由.com区域管理，我给你它的顶级域名服务器的地址，你去问问它吧。”</a></p>
+<li><p>repeated：可以重复0到多次。</p>
 </li>
-<li><p>本地DNS转向问顶级域名服务器：“老二，你能告诉我<a href="http://www.163.com的IP地址吗？”顶级域名服务器就是大名鼎鼎的比如">www.163.com的IP地址吗？”顶级域名服务器就是大名鼎鼎的比如</a> .com、.net、 .org这些一级域名，它负责管理二级域名，比如 163.com，所以它能提供一条更清晰的方向。</p>
-</li>
-<li><p>顶级域名服务器说：“我给你负责 <a target="_blank" rel="noopener" href="http://www.163.com/">www.163.com</a> 区域的权威DNS服务器的地址，你去问它应该能问到。”</p>
-</li>
-<li><p>本地DNS转向问权威DNS服务器：“您好，<a target="_blank" rel="noopener" href="http://www.163.com/">www.163.com</a> 对应的IP是啥呀？”163.com的权威DNS服务器，它是域名解析结果的原出处。为啥叫权威呢？就是我的域名我做主。</p>
-</li>
-<li><p>权威DNS服务器查询后将对应的IP地址X.X.X.X告诉本地DNS。</p>
-</li>
-<li><p>本地DNS再将IP地址返回客户端，客户端和目标建立连接。</p>
-</li>
-</ol>
-<p>至此，我们完成了DNS的解析过程。现在总结一下，整个过程我画成了一个图。</p>
-<p><img src="/./img/images/9895/718e3a1a1a7927302b6a0f836409e8e8.jpg"></p>
-<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><p>站在客户端角度，这是一次 <strong>DNS递归查询过程。因为本地DNS全权为它效劳，它只要坐等结果即可。在这个过程中，DNS除了可以通过名称映射为IP地址，它还可以做另外一件事，就是负载均衡</strong>。</p>
-<p>还是以访问“外婆家”为例，还是我们开头的“外婆家”，但是，它可能有很多地址，因为它在杭州可以有很多家。所以，如果一个人想去吃“外婆家”，他可以就近找一家店，而不用大家都去同一家，这就是负载均衡。</p>
-<p>DNS首先可以做 <strong>内部负载均衡</strong>。</p>
-<p>例如，一个应用要访问数据库，在这个应用里面应该配置这个数据库的IP地址，还是应该配置这个数据库的域名呢？显然应该配置域名，因为一旦这个数据库，因为某种原因，换到了另外一台机器上，而如果有多个应用都配置了这台数据库的话，一换IP地址，就需要将这些应用全部修改一遍。但是如果配置了域名，则只要在DNS服务器里，将域名映射为新的IP地址，这个工作就完成了，大大简化了运维。</p>
-<p>在这个基础上，我们可以再进一步。例如，某个应用要访问另外一个应用，如果配置另外一个应用的IP地址，那么这个访问就是一对一的。但是当被访问的应用撑不住的时候，我们其实可以部署多个。但是，访问它的应用，如何在多个之间进行负载均衡？只要配置成为域名就可以了。在域名解析的时候，我们只要配置策略，这次返回第一个IP，下次返回第二个IP，就可以实现负载均衡了。</p>
-<p>另外一个更加重要的是，DNS还可以做 <strong>全局负载均衡</strong>。</p>
-<p>为了保证我们的应用高可用，往往会部署在多个机房，每个地方都会有自己的IP地址。当用户访问某个域名的时候，这个IP地址可以轮询访问多个数据中心。如果一个数据中心因为某种原因挂了，只要在DNS服务器里面，将这个数据中心对应的IP地址删除，就可以实现一定的高可用。</p>
-<p>另外，我们肯定希望北京的用户访问北京的数据中心，上海的用户访问上海的数据中心，这样，客户体验就会非常好，访问速度就会超快。这就是全局负载均衡的概念。</p>
-<h2 id="示例：DNS访问数据中心中对象存储上的静态资源"><a href="#示例：DNS访问数据中心中对象存储上的静态资源" class="headerlink" title="示例：DNS访问数据中心中对象存储上的静态资源"></a>示例：DNS访问数据中心中对象存储上的静态资源</h2><p>我们通过DNS访问数据中心中对象存储上的静态资源为例，看一看整个过程。</p>
-<p>假设全国有多个数据中心，托管在多个运营商，每个数据中心三个可用区（Available Zone）。对象存储通过跨可用区部署，实现高可用性。在每个数据中心中，都至少部署两个内部负载均衡器，内部负载均衡器后面对接多个对象存储的前置服务器（Proxy-server）。</p>
-<p><img src="/./img/images/9895/0b241afef775a1c942c5728364b302b6.jpg"></p>
-<ol>
-<li><p>当一个客户端要访问object.yourcompany.com的时候，需要将域名转换为IP地址进行访问，所以它要请求本地DNS解析器。</p>
-</li>
-<li><p>本地DNS解析器先查看看本地的缓存是否有这个记录。如果有则直接使用，因为上面的过程太复杂了，如果每次都要递归解析，就太麻烦了。</p>
-</li>
-<li><p>如果本地无缓存，则需要请求本地的DNS服务器。</p>
-</li>
-<li><p>本地的DNS服务器一般部署在你的数据中心或者你所在的运营商的网络中，本地DNS服务器也需要看本地是否有缓存，如果有则返回，因为它也不想把上面的递归过程再走一遍。</p>
-</li>
-<li><p>至 7. 如果本地没有，本地DNS才需要递归地从根DNS服务器，查到.com的顶级域名服务器，最终查到 yourcompany.com 的权威DNS服务器，给本地DNS服务器，权威DNS服务器按说会返回真实要访问的IP地址。</p>
-</li>
-</ol>
-<p>对于不需要做全局负载均衡的简单应用来讲，yourcompany.com的权威DNS服务器可以直接将 object.yourcompany.com这个域名解析为一个或者多个IP地址，然后客户端可以通过多个IP地址，进行简单的轮询，实现简单的负载均衡。</p>
-<p>但是对于复杂的应用，尤其是跨地域跨运营商的大型应用，则需要更加复杂的全局负载均衡机制，因而需要专门的设备或者服务器来做这件事情，这就是 <strong>全局负载均衡器</strong>（ <strong>GSLB</strong>， <strong>Global Server Load Balance</strong>）。</p>
-<p>在yourcompany.com的DNS服务器中，一般是通过配置CNAME的方式，给 object.yourcompany.com起一个别名，例如 object.vip.yourcomany.com，然后告诉本地DNS服务器，让它请求GSLB解析这个域名，GSLB就可以在解析这个域名的过程中，通过自己的策略实现负载均衡。</p>
-<p>图中画了两层的GSLB，是因为分运营商和地域。我们希望不同运营商的客户，可以访问相同运营商机房中的资源，这样不跨运营商访问，有利于提高吞吐量，减少时延。</p>
-<ol>
-<li><p>第一层GSLB，通过查看请求它的本地DNS服务器所在的运营商，就知道用户所在的运营商。假设是移动，通过CNAME的方式，通过另一个别名 object.yd.yourcompany.com，告诉本地DNS服务器去请求第二层的GSLB。</p>
-</li>
-<li><p>第二层GSLB，通过查看请求它的本地DNS服务器所在的地址，就知道用户所在的地理位置，然后将距离用户位置比较近的Region里面，六个 <strong>内部负载均衡</strong>（ <strong>SLB</strong>，S <strong>erver Load Balancer</strong>）的地址，返回给本地DNS服务器。</p>
-</li>
-<li><p>本地DNS服务器将结果返回给本地DNS解析器。</p>
-</li>
-<li><p>本地DNS解析器将结果缓存后，返回给客户端。</p>
-</li>
-<li><p>客户端开始访问属于相同运营商的距离较近的Region 1中的对象存储，当然客户端得到了六个IP地址，它可以通过负载均衡的方式，随机或者轮询选择一个可用区进行访问。对象存储一般会有三个备份，从而可以实现对存储读写的负载均衡。</p>
-</li>
-</ol>
+</ul>
+<p>如果我们想修改协议文件，对于赋给某个标签的数字，例如string author&#x3D;3，这个就不要改变了，改变了就不认了；也不要添加或者删除required字段，因为解析的时候，发现没有这个字段就会报错。对于optional和repeated字段，可以删除，也可以添加。这就给了客户端和服务端升级的可能性。</p>
+<p>例如，我们在协议里面新增一个string recommended字段，表示这个课程是谁推荐的，就将这个字段设置为optional。我们可以先升级服务端，当客户端发过来消息的时候，是没有这个值的，将它设置为一个默认值。我们也可以先升级客户端，当客户端发过来消息的时候，是有这个值的，那它将被服务端忽略。</p>
+<p>至此，我们解决了协议约定的问题。</p>
+<h2 id="网络传输问题"><a href="#网络传输问题" class="headerlink" title="网络传输问题"></a>网络传输问题</h2><p>接下来，我们来看网络传输的问题。</p>
+<p>如果是Java技术栈，GRPC的客户端和服务器之间通过Netty Channel作为数据通道，每个请求都被封装成HTTP 2.0的Stream。</p>
+<p>Netty是一个高效的基于异步IO的网络传输框架，这个上一节我们已经介绍过了。HTTP 2.0在 <a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/9410">第14讲</a>，我们也介绍过。HTTP 2.0协议将一个TCP的连接，切分成多个流，每个流都有自己的ID，而且流是有优先级的。流可以是客户端发往服务端，也可以是服务端发往客户端。它其实只是一个虚拟的通道。</p>
+<p>HTTP 2.0还将所有的传输信息分割为更小的消息和帧，并对它们采用二进制格式编码。</p>
+<p>通过这两种机制，HTTP 2.0的客户端可以将多个请求分到不同的流中，然后将请求内容拆成帧，进行二进制传输。这些帧可以打散乱序发送， 然后根据每个帧首部的流标识符重新组装，并且可以根据优先级，决定优先处理哪个流的数据。</p>
+<p><img src="/./img/images/12819/03d4a216c024a9e761ed43c6787bf7dd.jpg"></p>
+<p>由于基于HTTP 2.0，GRPC和其他的RPC不同，可以定义四种服务方法。</p>
+<p>第一种，也是最常用的方式是 <strong>单向RPC</strong>，即客户端发送一个请求给服务端，从服务端获取一个应答，就像一次普通的函数调用。</p>
+<pre><code>rpc SayHello(HelloRequest) returns (HelloResponse)&#123;&#125;
+</code></pre>
+<p>第二种方式是 <strong>服务端流式RPC</strong>，即服务端返回的不是一个结果，而是一批。客户端发送一个请求给服务端，可获取一个数据流用来读取一系列消息。客户端从返回的数据流里一直读取，直到没有更多消息为止。</p>
+<pre><code>rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse)&#123;&#125;
+</code></pre>
+<p>第三种方式为 <strong>客户端流式RPC</strong>，也即客户端的请求不是一个，而是一批。客户端用提供的一个数据流写入并发送一系列消息给服务端。一旦客户端完成消息写入，就等待服务端读取这些消息并返回应答。</p>
+<pre><code>rpc LotsOfGreetings(stream HelloRequest) returns (HelloResponse) &#123;&#125;
+</code></pre>
+<p>第四种方式为 <strong>双向流式 RPC</strong>，即两边都可以分别通过一个读写数据流来发送一系列消息。这两个数据流操作是相互独立的，所以客户端和服务端能按其希望的任意顺序读写，服务端可以在写应答前等待所有的客户端消息，或者它可以先读一个消息再写一个消息，或者读写相结合的其他方式。每个数据流里消息的顺序会被保持。</p>
+<pre><code>rpc BidiHello(stream HelloRequest) returns (stream HelloResponse)&#123;&#125;
+</code></pre>
+<p>如果基于HTTP 2.0，客户端和服务器之间的交互方式要丰富得多，不仅可以单方向远程调用，还可以实现当服务端状态改变的时候，主动通知客户端。</p>
+<p>至此，传输问题得到了解决。</p>
+<h2 id="服务发现与治理问题"><a href="#服务发现与治理问题" class="headerlink" title="服务发现与治理问题"></a>服务发现与治理问题</h2><p>最后是服务发现与服务治理的问题。</p>
+<p>GRPC本身没有提供服务发现的机制，需要借助其他的组件，发现要访问的服务端，在多个服务端之间进行容错和负载均衡。</p>
+<p>其实负载均衡本身比较简单，LVS、HAProxy、Nginx都可以做，关键问题是如何发现服务端，并根据服务端的变化，动态修改负载均衡器的配置。</p>
+<p>在这里我们介绍一种对于GRPC支持比较好的负载均衡器Envoy。其实Envoy不仅仅是负载均衡器，它还是一个高性能的C++写的Proxy转发器，可以配置非常灵活的转发规则。</p>
+<p>这些规则可以是静态的，放在配置文件中的，在启动的时候加载。要想重新加载，一般需要重新启动，但是Envoy支持热加载和热重启，这在一定程度上缓解了这个问题。</p>
+<p>当然，最好的方式是将规则设置为动态的，放在统一的地方维护。这个统一的地方在Envoy眼中被称为服务发现（Discovery Service），过一段时间去这里拿一下配置，就修改了转发策略。</p>
+<p>无论是静态的，还是动态的，在配置里面往往会配置四个东西。</p>
+<p>第一个是listener。Envoy既然是Proxy，专门做转发，就得监听一个端口，接入请求，然后才能够根据策略转发，这个监听的端口就称为listener。</p>
+<p>第二个是endpoint，是目标的IP地址和端口。这个是Proxy最终将请求转发到的地方。</p>
+<p>第三个是cluster。一个cluster是具有完全相同行为的多个endpoint，也即如果有三个服务端在运行，就会有三个IP和端口，但是部署的是完全相同的三个服务，它们组成一个cluster，从cluster到endpoint的过程称为负载均衡，可以轮询。</p>
+<p>第四个是route。有时候多个cluster具有类似的功能，但是是不同的版本号，可以通过route规则，选择将请求路由到某一个版本号，也即某一个cluster。</p>
+<p>如果是静态的，则将后端的服务端的IP地址拿到，然后放在配置文件里面就可以了。</p>
+<p>如果是动态的，就需要配置一个服务发现中心，这个服务发现中心要实现Envoy的API，Envoy可以主动去服务发现中心拉取转发策略。</p>
+<p><img src="/./img/images/12819/d0e559056729a4618e76feb2150ef9c7.jpg"></p>
+<p>看来，Envoy进程和服务发现中心之间要经常相互通信，互相推送数据，所以Envoy在控制面和服务发现中心沟通的时候，就可以使用GRPC，也就天然具备在用户面支撑GRPC的能力。</p>
+<p>Envoy如果复杂的配置，都能干什么事呢？</p>
+<p>一种常见的规则是 <strong>配置路由策略</strong>。例如后端的服务有两个版本，可以通过配置Envoy的route，来设置两个版本之间，也即两个cluster之间的route规则，一个占99%的流量，一个占1%的流量。</p>
+<p>另一种常见的规则就是 <strong>负载均衡策略</strong>。对于一个cluster下的多个endpoint，可以配置负载均衡机制和健康检查机制，当服务端新增了一个，或者挂了一个，都能够及时配置Envoy，进行负载均衡。</p>
+<p><img src="/./img/images/12819/722d4a1722e551be8c9583d6f5494032.jpg"></p>
+<p>所有这些节点的变化都会上传到注册中心，所有这些策略都可以通过注册中心进行下发，所以，更严格的意义上讲，注册中心可以称为 <strong>注册治理中心</strong>。</p>
+<p>Envoy这么牛，是不是能够将服务之间的相互调用全部由它代理？如果这样，服务也不用像Dubbo，或者Spring Cloud一样，自己感知到注册中心，自己注册，自己治理，对应用干预比较大。</p>
+<p>如果我们的应用能够意识不到服务治理的存在，就可以直接进行GRPC的调用。</p>
+<p>这就是未来服务治理的趋势 <strong>Serivce Mesh</strong>，也即应用之间的相互调用全部由Envoy进行代理，服务之间的治理也被Envoy进行代理，完全将服务治理抽象出来，到平台层解决。</p>
+<p><img src="/./img/images/12819/b5e7f54b07fea522ebc2469bbb081b5f.jpg"></p>
+<p>至此RPC框架中有治理功能的Dubbo、Spring Cloud、Service Mesh就聚齐了。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
-<li><p>DNS是网络世界的地址簿，可以通过域名查地址，因为域名服务器是按照树状结构组织的，因而域名查找是使用递归的方法，并通过缓存的方式增强性能；</p>
+<li><p>GRPC是一种二进制，性能好，跨语言，还灵活，同时可以进行服务治理的多快好省的RPC框架，唯一不足就是还是要写协议文件。</p>
 </li>
-<li><p>在域名和IP的映射过程中，给了应用基于域名做负载均衡的机会，可以是简单的负载均衡，也可以根据地址和运营商做全局的负载均衡。</p>
+<li><p>GRPC序列化使用Protocol Buffers，网络传输使用HTTP 2.0，服务治理可以使用基于Envoy的Service Mesh。</p>
 </li>
 </ul>
-<ol>
-<li><p>全局负载均衡为什么要分地址和运营商呢？</p>
-</li>
-<li><p>全局负载均衡使用过程中，常常遇到失灵的情况，你知道具体有哪些情况吗？对应应该怎么来解决呢？</p>
-</li>
-</ol>
 
                 
             </div>
@@ -446,7 +472,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://MerlinCLZ.github.io/17-DNS%E5%8D%8F%E8%AE%AE/">http://MerlinCLZ.github.io/17-DNS%E5%8D%8F%E8%AE%AE/</a>
+                    <a href="http://MerlinCLZ.github.io/23-%E8%B7%A8%E8%AF%AD%E8%A8%80%E7%B1%BBRPC%E5%8D%8F%E8%AE%AE/">http://MerlinCLZ.github.io/23-%E8%B7%A8%E8%AF%AD%E8%A8%80%E7%B1%BBRPC%E5%8D%8F%E8%AE%AE/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -535,13 +561,13 @@
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/18-HttpDNS/">
+                <a href="/Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/11.jpg" class="responsive-img" alt="18-HttpDNS">
+                        <img src="/medias/featureimages/4.jpg" class="responsive-img" alt="1-Linux性能优化">
                         
-                        <span class="card-title">18-HttpDNS</span>
+                        <span class="card-title">1-Linux性能优化</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -552,7 +578,7 @@
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2023-03-28
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-07-13
                         </span>
                         <span class="publish-author">
                             
@@ -565,8 +591,8 @@
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">
-                        <span class="chip bg-color">计算机网络</span>
+                    <a href="/tags/Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+                        <span class="chip bg-color">Linux性能优化</span>
                     </a>
                     
                 </div>
@@ -580,13 +606,13 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/16-P2P%E5%8D%8F%E8%AE%AE/">
+                <a href="/22-RPC%E5%8D%8F%E8%AE%AE%E7%BB%BC%E8%BF%B0/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/13.jpg" class="responsive-img" alt="16-P2P协议">
+                        <img src="/medias/featureimages/13.jpg" class="responsive-img" alt="22-RPC协议综述">
                         
-                        <span class="card-title">16-P2P协议</span>
+                        <span class="card-title">22-RPC协议综述</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -597,7 +623,7 @@
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2023-03-23
+                                <i class="far fa-clock fa-fw icon-date"></i>2023-04-11
                             </span>
                         <span class="publish-author">
                             

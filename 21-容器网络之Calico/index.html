@@ -4,9 +4,8 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="17-DNS协议, Cheng Wenqing&#39;s Blog">
-    <meta name="description" content="第17讲 | DNS协议前面我们讲了平时常见的看新闻、支付、直播、下载等场景，现在网站的数目非常多，常用的网站就有二三十个，如果全部用IP地址进行访问，恐怕很难记住。于是，就需要一个地址簿，根据名称，就可以查看具体的地址。
-例如，我要去西湖">
+    <meta name="keywords" content="21-容器网络之Calico, Cheng Wenqing&#39;s Blog">
+    <meta name="description" content="第21讲 | 容器网络之Calic上一节我们讲了Flannel如何解决容器跨主机互通的问题，这个解决方式其实和虚拟机的网络互通模式是差不多的，都是通过隧道。但是Flannel有一个非常好的模式，就是给不同的物理机设置不同网段，这一点和虚拟机">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -18,7 +17,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>17-DNS协议 | Cheng Wenqing&#39;s Blog</title>
+    <title>21-容器网络之Calico | Cheng Wenqing&#39;s Blog</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -270,12 +269,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/7.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/18.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">17-DNS协议</h1>
+                    <h1 class="description center-align post-title">21-容器网络之Calico</h1>
                 </div>
             </div>
         </div>
@@ -315,7 +314,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2023-03-25
+                    2023-04-09
                 </div>
                 
 
@@ -336,88 +335,114 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="第17讲-DNS协议"><a href="#第17讲-DNS协议" class="headerlink" title="第17讲 | DNS协议"></a>第17讲 | DNS协议</h1><p>前面我们讲了平时常见的看新闻、支付、直播、下载等场景，现在网站的数目非常多，常用的网站就有二三十个，如果全部用IP地址进行访问，恐怕很难记住。于是，就需要一个地址簿，根据名称，就可以查看具体的地址。</p>
-<p>例如，我要去西湖边的“外婆家”，这就是名称，然后通过地址簿，查看到底是哪条路多少号。</p>
-<h2 id="DNS服务器"><a href="#DNS服务器" class="headerlink" title="DNS服务器"></a>DNS服务器</h2><p>在网络世界，也是这样的。你肯定记得住网站的名称，但是很难记住网站的IP地址，因而也需要一个地址簿，就是 <strong>DNS服务器</strong>。</p>
-<p>由此可见，DNS在日常生活中多么重要。每个人上网，都需要访问它，但是同时，这对它来讲也是非常大的挑战。一旦它出了故障，整个互联网都将瘫痪。另外，上网的人分布在全世界各地，如果大家都去同一个地方访问某一台服务器，时延将会非常大。因而， <strong>DNS服务器，一定要设置成高可用、高并发和分布式的</strong>。</p>
-<p>于是，就有了这样 <strong>树状的层次结构</strong>。</p>
-<p><img src="/./img/images/9895/890ff98fde625c6a60fb71yy22d8184d.jpg">- 根DNS服务器 ：返回顶级域DNS服务器的IP地址</p>
+                <h1 id="第21讲-容器网络之Calic"><a href="#第21讲-容器网络之Calic" class="headerlink" title="第21讲 | 容器网络之Calic"></a>第21讲 | 容器网络之Calic</h1><p>上一节我们讲了Flannel如何解决容器跨主机互通的问题，这个解决方式其实和虚拟机的网络互通模式是差不多的，都是通过隧道。但是Flannel有一个非常好的模式，就是给不同的物理机设置不同网段，这一点和虚拟机的Overlay的模式完全不一样。</p>
+<p>在虚拟机的场景下，整个网段在所有的物理机之间都是可以“飘来飘去”的。网段不同，就给了我们做路由策略的可能。</p>
+<h2 id="Calico网络模型的设计思路"><a href="#Calico网络模型的设计思路" class="headerlink" title="Calico网络模型的设计思路"></a>Calico网络模型的设计思路</h2><p>我们看图中的两台物理机。它们的物理网卡是同一个二层网络里面的。由于两台物理机的容器网段不同，我们完全可以将两台物理机配置成为路由器，并按照容器的网段配置路由表。</p>
+<p><img src="/./img/images/11940/1957b75dd689127c4621b5460c356137.jpg"></p>
+<p>例如，在物理机A中，我们可以这样配置：要想访问网段172.17.9.0&#x2F;24，下一跳是192.168.100.101，也即到物理机B上去。</p>
+<p>这样在容器A中访问容器B，当包到达物理机A的时候，就能够匹配到这条路由规则，并将包发给下一跳的路由器，也即发给物理机B。在物理机B上也有路由规则，要访问172.17.9.0&#x2F;24，从docker0的网卡进去即可。</p>
+<p>当容器B返回结果的时候，在物理机B上，可以做类似的配置：要想访问网段172.17.8.0&#x2F;24，下一跳是192.168.100.100，也即到物理机A上去。</p>
+<p>当包到达物理机B的时候，能够匹配到这条路由规则，将包发给下一跳的路由器，也即发给物理机A。在物理机A上也有路由规则，要访问172.17.8.0&#x2F;24，从docker0的网卡进去即可。</p>
+<p>这就是 <strong>Calico网络的大概思路</strong>， <strong>即不走Overlay网络，不引入另外的网络性能损耗，而是将转发全部用三层网络的路由转发来实现</strong>，只不过具体的实现和上面的过程稍有区别。</p>
+<p>首先，如果全部走三层的路由规则，没必要每台机器都用一个docker0，从而浪费了一个IP地址，而是可以直接用路由转发到veth pair在物理机这一端的网卡。同样，在容器内，路由规则也可以这样设定：把容器外面的veth pair网卡算作默认网关，下一跳就是外面的物理机。</p>
+<p>于是，整个拓扑结构就变成了这个图中的样子。</p>
+<p><img src="/./img/f4fab81e3f981827577aa7790b78dc58.jpg"></p>
+<h2 id="Calico网络的转发细节"><a href="#Calico网络的转发细节" class="headerlink" title="Calico网络的转发细节"></a>Calico网络的转发细节</h2><p>我们来看其中的一些细节。</p>
+<p>容器A1的IP地址为172.17.8.2&#x2F;32，这里注意，不是&#x2F;24，而是&#x2F;32，将容器A1作为一个单点的局域网了。</p>
+<p>容器A1里面的默认路由，Calico配置得比较有技巧。</p>
+<pre><code>default via 169.254.1.1 dev eth0
+169.254.1.1 dev eth0 scope link
+</code></pre>
+<p>这个IP地址169.254.1.1是默认的网关，但是整个拓扑图中没有一张网卡是这个地址。那如何到达这个地址呢？</p>
+<p>前面我们讲网关的原理的时候说过，当一台机器要访问网关的时候，首先会通过ARP获得网关的MAC地址，然后将目标MAC变为网关的MAC，而网关的IP地址不会在任何网络包头里面出现，也就是说，没有人在乎这个地址具体是什么，只要能找到对应的MAC，响应ARP就可以了。</p>
+<p>ARP本地有缓存，通过ip neigh命令可以查看。</p>
+<pre><code>169.254.1.1 dev eth0 lladdr ee:ee:ee:ee:ee:ee STALE
+</code></pre>
+<p>这个MAC地址是Calico硬塞进去的，但是没有关系，它能响应ARP，于是发出的包的目标MAC就是这个MAC地址。</p>
+<p>在物理机A上查看所有网卡的MAC地址的时候，我们会发现veth1就是这个MAC地址。所以容器A1里发出的网络包，第一跳就是这个veth1这个网卡，也就到达了物理机A这个路由器。</p>
+<p>在物理机A上有三条路由规则，分别是去两个本机的容器的路由，以及去172.17.9.0&#x2F;24，下一跳为物理机B。</p>
+<pre><code>172.17.8.2 dev veth1 scope link
+172.17.8.3 dev veth2 scope link
+172.17.9.0/24 via 192.168.100.101 dev eth0 proto bird onlink
+</code></pre>
+<p>同理，物理机B上也有三条路由规则，分别是去两个本机的容器的路由，以及去172.17.8.0&#x2F;24，下一跳为物理机A。</p>
+<pre><code>172.17.9.2 dev veth1 scope link
+172.17.9.3 dev veth2 scope link
+172.17.8.0/24 via 192.168.100.100 dev eth0 proto bird onlink
+</code></pre>
+<p>如果你觉得这些规则过于复杂，我将刚才的拓扑图转换为这个更加容易理解的图。</p>
+<p><img src="/./img/5f23071c1e1b17cc46f1cb8955084247.jpg"></p>
+<p>在这里，物理机化身为路由器，通过路由器上的路由规则，将包转发到目的地。在这个过程中，没有隧道封装解封装，仅仅是单纯的路由转发，性能会好很多。但是，这种模式也有很多问题。</p>
+<h2 id="Calico的架构"><a href="#Calico的架构" class="headerlink" title="Calico的架构"></a>Calico的架构</h2><h3 id="路由配置组件Felix"><a href="#路由配置组件Felix" class="headerlink" title="路由配置组件Felix"></a>路由配置组件Felix</h3><p>如果只有两台机器，每台机器只有两个容器，而且保持不变。我手动配置一下，倒也没啥问题。但是如果容器不断地创建、删除，节点不断地加入、退出，情况就会变得非常复杂。</p>
+<p><img src="/./img/f29027cca71f3dfbba8c2f1a35c29331.jpg"></p>
+<p>就像图中，有三台物理机，两两之间都需要配置路由，每台物理机上对外的路由就有两条。如果有六台物理机，则每台物理机上对外的路由就有五条。新加入一个节点，需要通知每一台物理机添加一条路由。</p>
+<p>这还是在物理机之间，一台物理机上，每创建一个容器，也需要多配置一条指向这个容器的路由。如此复杂，肯定不能手动配置，需要每台物理机上有一个agent，当创建和删除容器的时候，自动做这件事情。这个agent在Calico中称为Felix。</p>
+<h3 id="路由广播组件BGP-Speaker"><a href="#路由广播组件BGP-Speaker" class="headerlink" title="路由广播组件BGP Speaker"></a>路由广播组件BGP Speaker</h3><p>当Felix配置了路由之后，接下来的问题就是，如何将路由信息，也即将“如何到达我这个节点，访问我这个节点上的容器”这些信息，广播出去。</p>
+<p>能想起来吗？这其实就是路由协议啊！路由协议就是将“我能到哪里，如何能到我”的信息广播给全网传出去，从而客户端可以一跳一跳地访问目标地址的。路由协议有很多种，Calico使用的是BGP协议。</p>
+<p>在Calico中，每个Node上运行一个软件BIRD，作为BGP的客户端，或者叫作BGP Speaker，将“如何到达我这个Node，访问我这个Node上的容器”的路由信息广播出去。所有Node上的BGP Speaker 都互相建立连接，就形成了全互连的情况，这样每当路由有所变化的时候，所有节点就都能够收到了。</p>
+<h3 id="安全策略组件"><a href="#安全策略组件" class="headerlink" title="安全策略组件"></a>安全策略组件</h3><p>Calico中还实现了灵活配置网络策略Network Policy，可以灵活配置两个容器通或者不通。这个怎么实现呢？</p>
+<p><img src="/./img/ddae28956780cc3e45fde76ae96701f2.jpg"></p>
+<p>虚拟机中的安全组，是用iptables实现的。Calico中也是用iptables实现的。这个图里的内容是iptables在内核处理网络包的过程中可以嵌入的处理点。Calico也是在这些点上设置相应的规则。</p>
+<p><img src="/./img/8f2be6638615fc5501c460d1206bff3f.jpg"></p>
+<p>当网络包进入物理机上的时候，进入PREOUTING规则，这里面有一个规则是cali-fip-dnat，这是实现浮动IP（Floating IP）的场景，主要将外网的IP地址dnat作为容器内的IP地址。在虚拟机场景下，路由器的网络namespace里面有一个外网网卡上，也设置过这样一个DNAT规则。</p>
+<p>接下来可以根据路由判断，是到本地的，还是要转发出去的。</p>
+<p>如果是本地的，走INPUT规则，里面有个规则是cali-wl-to-host，wl的意思是workload，也即容器，也即这是用来判断从容器发到物理机的网络包是否符合规则的。这里面内嵌一个规则cali-from-wl-dispatch，也是匹配从容器来的包。如果有两个容器，则会有两个容器网卡，这里面内嵌有详细的规则“cali-fw-cali网卡1”和“cali-fw-cali网卡2”，fw就是from workload，也就是匹配从容器1来的网络包和从容器2来的网络包。</p>
+<p>如果是转发出去的，走FORWARD规则，里面有个规则cali-FORWARD。这里面分两种情况，一种是从容器里面发出来，转发到外面的；另一种是从外面发进来，转发到容器里面的。</p>
+<p>第一种情况匹配的规则仍然是cali-from-wl-dispatch，也即from workload。第二种情况匹配的规则是cali-to-wl-dispatch，也即to workload。如果有两个容器，则会有两个容器网卡，在这里面内嵌有详细的规则“cali-tw-cali网卡1”和“cali-tw-cali网卡2”，tw就是to workload，也就是匹配发往容器1的网络包和发送到容器2的网络包。</p>
+<p>接下来是匹配OUTPUT规则，里面有cali-OUTPUT。接下来是POSTROUTING规则，里面有一个规则是cali-fip-snat，也即发出去的时候，将容器网络IP转换为浮动IP地址。在虚拟机场景下，路由器的网络namespace里面有一个外网网卡上，也设置过这样一个SNAT规则。</p>
+<p>至此为止，Calico的所有组件基本凑齐。来看看我汇总的图。</p>
+<p><img src="/./img/71f22fd9e8336c7e10c8ff7bd276af07.jpg"></p>
+<h2 id="全连接复杂性与规模问题"><a href="#全连接复杂性与规模问题" class="headerlink" title="全连接复杂性与规模问题"></a>全连接复杂性与规模问题</h2><p>这里面还存在问题，就是BGP全连接的复杂性问题。</p>
+<p>你看刚才的例子里只有六个节点，BGP的互连已经如此复杂，如果节点数据再多，这种全互连的模式肯定不行，到时候都成蜘蛛网了。于是多出了一个组件BGP Route Reflector，它也是用BIRD实现的。有了它，BGP Speaker就不用全互连了，而是都直连它，它负责将全网的路由信息广播出去。</p>
+<p>可是问题来了，规模大了，大家都连它，它受得了吗？这个BGP Router Reflector会不会成为瓶颈呢？</p>
+<p>所以，肯定不能让一个BGP Router Reflector管理所有的路由分发，而是应该有多个BGP Router Reflector，每个BGP Router Reflector管一部分。</p>
+<p>多大算一部分呢？咱们讲述数据中心的时候，说服务器都是放在机架上的，每个机架上最顶端有个TOR交换机。那将机架上的机器连在一起，这样一个机架是不是可以作为一个单元，让一个BGP Router Reflector来管理呢？如果要跨机架，如何进行通信呢？这就需要BGP Router Reflector也直接进行路由交换。它们之间的交换和一个机架之间的交换有什么关系吗？</p>
+<p>有没有觉得在这个场景下，一个机架就像一个数据中心，可以把它设置为一个AS，而BGP Router Reflector有点儿像数据中心的边界路由器。在一个AS内部，也即服务器和BGP Router Reflector之间使用的是数据中心内部的路由协议iBGP，BGP Router Reflector之间使用的是数据中心之间的路由协议eBGP。</p>
+<p><img src="/./img/474cb05d5536f11d75baeb6332d788a0.jpg"></p>
+<p>这个图中，一个机架上有多台机器，每台机器上面启动多个容器，每台机器上都有可以到达这些容器的路由。每台机器上都启动一个BGP Speaker，然后将这些路由规则上报到这个Rack上接入交换机的BGP Route Reflector，将这些路由通过iBGP协议告知到接入交换机的三层路由功能。</p>
+<p>在接入交换机之间也建立BGP连接，相互告知路由，因而一个Rack里面的路由可以告知另一个Rack。有多个核心或者汇聚交换机将接入交换机连接起来，如果核心和汇聚起二层互通的作用，则接入和接入之间之间交换路由即可。如果核心和汇聚交换机起三层路由的作用，则路由需要通过核心或者汇聚交换机进行告知。</p>
+<h2 id="跨网段访问问题"><a href="#跨网段访问问题" class="headerlink" title="跨网段访问问题"></a>跨网段访问问题</h2><p>上面的Calico模式还有一个问题，就是跨网段问题，这里的跨网段是指物理机跨网段。</p>
+<p>前面我们说的那些逻辑成立的条件，是我们假设物理机可以作为路由器进行使用。例如物理机A要告诉物理机B，你要访问172.17.8.0&#x2F;24，下一跳是我192.168.100.100；同理，物理机B要告诉物理机A，你要访问172.17.9.0&#x2F;24，下一跳是我192.168.100.101。</p>
+<p>之所以能够这样，是因为物理机A和物理机B是同一个网段的，是连接在同一个交换机上的。那如果物理机A和物理机B不是在同一个网段呢？</p>
+<p><img src="/./img/58bb1d0965c383b1eaac06946998f089.jpg"></p>
+<p><img src="/./img/1b4514ed6d0e952a9d14f55yy36c0937.jpg"></p>
+<p>例如，物理机A的网段是192.168.100.100&#x2F;24，物理机B的网段是192.168.200.101&#x2F;24，这样两台机器就不能通过二层交换机连接起来了，需要在中间放一台路由器，做一次路由转发，才能跨网段访问。</p>
+<p>本来物理机A要告诉物理机B，你要访问172.17.8.0&#x2F;24，下一跳是我192.168.100.100的，但是中间多了一台路由器，下一跳不是我了，而是中间的这台路由器了，这台路由器的再下一跳，才是我。这样之前的逻辑就不成立了。</p>
+<p>我们看刚才那张图的下半部分。物理机B上的容器要访问物理机A上的容器，第一跳就是物理机B，IP为192.168.200.101，第二跳是中间的物理路由器右面的网口，IP为192.168.200.1，第三跳才是物理机A，IP为192.168.100.100。</p>
+<p>这是咱们通过拓扑图看到的，关键问题是，在系统中物理机A如何告诉物理机B，怎么让它才能到我这里？物理机A根本不可能知道从物理机B出来之后的下一跳是谁，况且现在只是中间隔着一个路由器这种简单的情况，如果隔着多个路由器呢？谁能把这一串的路径告诉物理机B呢？</p>
+<p>我们能想到的第一种方式是，让中间所有的路由器都来适配Calico。本来它们互相告知路由，只互相告知物理机的，现在还要告知容器的网段。这在大部分情况下，是不可能的。</p>
+<p>第二种方式，还是在物理机A和物理机B之间打一个隧道，这个隧道有两个端点，在端点上进行封装，将容器的IP作为乘客协议放在隧道里面，而物理主机的IP放在外面作为承载协议。这样不管外层的IP通过传统的物理网络，走多少跳到达目标物理机，从隧道两端看起来，物理机A的下一跳就是物理机B，这样前面的逻辑才能成立。</p>
+<p>这就是Calico的 <strong>IPIP模式</strong>。使用了IPIP模式之后，在物理机A上，我们能看到这样的路由表：</p>
+<pre><code>172.17.8.2 dev veth1 scope link
+172.17.8.3 dev veth2 scope link
+172.17.9.0/24 via 192.168.200.101 dev tun0 proto bird onlink
+</code></pre>
+<p>这和原来模式的区别在于，下一跳不再是同一个网段的物理机B了，IP为192.168.200.101，并且不是从eth0跳，而是建立一个隧道的端点tun0，从这里才是下一跳。</p>
+<p>如果我们在容器A1里面的172.17.8.2，去ping容器B1里面的172.17.9.2，首先会到物理机A。在物理机A上根据上面的规则，会转发给tun0，并在这里对包做封装：</p>
 <ul>
-<li><p>顶级域DNS服务器：返回权威DNS服务器的IP地址</p>
+<li><p>内层源IP为172.17.8.2；</p>
 </li>
-<li><p>权威DNS服务器 ：返回相应主机的IP地址</p>
+<li><p>内层目标IP为172.17.9.2；</p>
+</li>
+<li><p>外层源IP为192.168.100.100；</p>
+</li>
+<li><p>外层目标IP为192.168.200.101。</p>
 </li>
 </ul>
-<h2 id="DNS解析流程"><a href="#DNS解析流程" class="headerlink" title="DNS解析流程"></a>DNS解析流程</h2><p>为了提高DNS的解析性能，很多网络都会就近部署DNS缓存服务器。于是，就有了以下的DNS解析流程。</p>
-<ol>
-<li><p>电脑客户端会发出一个DNS请求，问<a target="_blank" rel="noopener" href="http://www.163.com的ip是啥啊,并发给本地域名服务器/">www.163.com的IP是啥啊，并发给本地域名服务器</a> (本地DNS)。那本地域名服务器 (本地DNS) 是什么呢？如果是通过DHCP配置，本地DNS由你的网络服务商（ISP），如电信、移动等自动分配，它通常就在你网络服务商的某个机房。</p>
-</li>
-<li><p>本地DNS收到来自客户端的请求。你可以想象这台服务器上缓存了一张域名与之对应IP地址的大表格。如果能找到 <a href="http://www.163.com，它就直接返回IP地址。如果没有，本地DNS会去问它的根域名服务器：“老大，能告诉我www.163.com的IP地址吗？”根域名服务器是最高层次的，全球共有13套。它不直接用于域名解析，但能指明一条道路。">www.163.com，它就直接返回IP地址。如果没有，本地DNS会去问它的根域名服务器：“老大，能告诉我www.163.com的IP地址吗？”根域名服务器是最高层次的，全球共有13套。它不直接用于域名解析，但能指明一条道路。</a></p>
-</li>
-<li><p>根DNS收到来自本地DNS的请求，发现后缀是 .com，说：“哦，<a target="_blank" rel="noopener" href="http://www.163.com啊,这个域名是由.com区域管理,我给你它的顶级域名服务器的地址,你去问问它吧.”/">www.163.com啊，这个域名是由.com区域管理，我给你它的顶级域名服务器的地址，你去问问它吧。”</a></p>
-</li>
-<li><p>本地DNS转向问顶级域名服务器：“老二，你能告诉我<a href="http://www.163.com的IP地址吗？”顶级域名服务器就是大名鼎鼎的比如">www.163.com的IP地址吗？”顶级域名服务器就是大名鼎鼎的比如</a> .com、.net、 .org这些一级域名，它负责管理二级域名，比如 163.com，所以它能提供一条更清晰的方向。</p>
-</li>
-<li><p>顶级域名服务器说：“我给你负责 <a target="_blank" rel="noopener" href="http://www.163.com/">www.163.com</a> 区域的权威DNS服务器的地址，你去问它应该能问到。”</p>
-</li>
-<li><p>本地DNS转向问权威DNS服务器：“您好，<a target="_blank" rel="noopener" href="http://www.163.com/">www.163.com</a> 对应的IP是啥呀？”163.com的权威DNS服务器，它是域名解析结果的原出处。为啥叫权威呢？就是我的域名我做主。</p>
-</li>
-<li><p>权威DNS服务器查询后将对应的IP地址X.X.X.X告诉本地DNS。</p>
-</li>
-<li><p>本地DNS再将IP地址返回客户端，客户端和目标建立连接。</p>
-</li>
-</ol>
-<p>至此，我们完成了DNS的解析过程。现在总结一下，整个过程我画成了一个图。</p>
-<p><img src="/./img/images/9895/718e3a1a1a7927302b6a0f836409e8e8.jpg"></p>
-<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><p>站在客户端角度，这是一次 <strong>DNS递归查询过程。因为本地DNS全权为它效劳，它只要坐等结果即可。在这个过程中，DNS除了可以通过名称映射为IP地址，它还可以做另外一件事，就是负载均衡</strong>。</p>
-<p>还是以访问“外婆家”为例，还是我们开头的“外婆家”，但是，它可能有很多地址，因为它在杭州可以有很多家。所以，如果一个人想去吃“外婆家”，他可以就近找一家店，而不用大家都去同一家，这就是负载均衡。</p>
-<p>DNS首先可以做 <strong>内部负载均衡</strong>。</p>
-<p>例如，一个应用要访问数据库，在这个应用里面应该配置这个数据库的IP地址，还是应该配置这个数据库的域名呢？显然应该配置域名，因为一旦这个数据库，因为某种原因，换到了另外一台机器上，而如果有多个应用都配置了这台数据库的话，一换IP地址，就需要将这些应用全部修改一遍。但是如果配置了域名，则只要在DNS服务器里，将域名映射为新的IP地址，这个工作就完成了，大大简化了运维。</p>
-<p>在这个基础上，我们可以再进一步。例如，某个应用要访问另外一个应用，如果配置另外一个应用的IP地址，那么这个访问就是一对一的。但是当被访问的应用撑不住的时候，我们其实可以部署多个。但是，访问它的应用，如何在多个之间进行负载均衡？只要配置成为域名就可以了。在域名解析的时候，我们只要配置策略，这次返回第一个IP，下次返回第二个IP，就可以实现负载均衡了。</p>
-<p>另外一个更加重要的是，DNS还可以做 <strong>全局负载均衡</strong>。</p>
-<p>为了保证我们的应用高可用，往往会部署在多个机房，每个地方都会有自己的IP地址。当用户访问某个域名的时候，这个IP地址可以轮询访问多个数据中心。如果一个数据中心因为某种原因挂了，只要在DNS服务器里面，将这个数据中心对应的IP地址删除，就可以实现一定的高可用。</p>
-<p>另外，我们肯定希望北京的用户访问北京的数据中心，上海的用户访问上海的数据中心，这样，客户体验就会非常好，访问速度就会超快。这就是全局负载均衡的概念。</p>
-<h2 id="示例：DNS访问数据中心中对象存储上的静态资源"><a href="#示例：DNS访问数据中心中对象存储上的静态资源" class="headerlink" title="示例：DNS访问数据中心中对象存储上的静态资源"></a>示例：DNS访问数据中心中对象存储上的静态资源</h2><p>我们通过DNS访问数据中心中对象存储上的静态资源为例，看一看整个过程。</p>
-<p>假设全国有多个数据中心，托管在多个运营商，每个数据中心三个可用区（Available Zone）。对象存储通过跨可用区部署，实现高可用性。在每个数据中心中，都至少部署两个内部负载均衡器，内部负载均衡器后面对接多个对象存储的前置服务器（Proxy-server）。</p>
-<p><img src="/./img/images/9895/0b241afef775a1c942c5728364b302b6.jpg"></p>
-<ol>
-<li><p>当一个客户端要访问object.yourcompany.com的时候，需要将域名转换为IP地址进行访问，所以它要请求本地DNS解析器。</p>
-</li>
-<li><p>本地DNS解析器先查看看本地的缓存是否有这个记录。如果有则直接使用，因为上面的过程太复杂了，如果每次都要递归解析，就太麻烦了。</p>
-</li>
-<li><p>如果本地无缓存，则需要请求本地的DNS服务器。</p>
-</li>
-<li><p>本地的DNS服务器一般部署在你的数据中心或者你所在的运营商的网络中，本地DNS服务器也需要看本地是否有缓存，如果有则返回，因为它也不想把上面的递归过程再走一遍。</p>
-</li>
-<li><p>至 7. 如果本地没有，本地DNS才需要递归地从根DNS服务器，查到.com的顶级域名服务器，最终查到 yourcompany.com 的权威DNS服务器，给本地DNS服务器，权威DNS服务器按说会返回真实要访问的IP地址。</p>
-</li>
-</ol>
-<p>对于不需要做全局负载均衡的简单应用来讲，yourcompany.com的权威DNS服务器可以直接将 object.yourcompany.com这个域名解析为一个或者多个IP地址，然后客户端可以通过多个IP地址，进行简单的轮询，实现简单的负载均衡。</p>
-<p>但是对于复杂的应用，尤其是跨地域跨运营商的大型应用，则需要更加复杂的全局负载均衡机制，因而需要专门的设备或者服务器来做这件事情，这就是 <strong>全局负载均衡器</strong>（ <strong>GSLB</strong>， <strong>Global Server Load Balance</strong>）。</p>
-<p>在yourcompany.com的DNS服务器中，一般是通过配置CNAME的方式，给 object.yourcompany.com起一个别名，例如 object.vip.yourcomany.com，然后告诉本地DNS服务器，让它请求GSLB解析这个域名，GSLB就可以在解析这个域名的过程中，通过自己的策略实现负载均衡。</p>
-<p>图中画了两层的GSLB，是因为分运营商和地域。我们希望不同运营商的客户，可以访问相同运营商机房中的资源，这样不跨运营商访问，有利于提高吞吐量，减少时延。</p>
-<ol>
-<li><p>第一层GSLB，通过查看请求它的本地DNS服务器所在的运营商，就知道用户所在的运营商。假设是移动，通过CNAME的方式，通过另一个别名 object.yd.yourcompany.com，告诉本地DNS服务器去请求第二层的GSLB。</p>
-</li>
-<li><p>第二层GSLB，通过查看请求它的本地DNS服务器所在的地址，就知道用户所在的地理位置，然后将距离用户位置比较近的Region里面，六个 <strong>内部负载均衡</strong>（ <strong>SLB</strong>，S <strong>erver Load Balancer</strong>）的地址，返回给本地DNS服务器。</p>
-</li>
-<li><p>本地DNS服务器将结果返回给本地DNS解析器。</p>
-</li>
-<li><p>本地DNS解析器将结果缓存后，返回给客户端。</p>
-</li>
-<li><p>客户端开始访问属于相同运营商的距离较近的Region 1中的对象存储，当然客户端得到了六个IP地址，它可以通过负载均衡的方式，随机或者轮询选择一个可用区进行访问。对象存储一般会有三个备份，从而可以实现对存储读写的负载均衡。</p>
-</li>
-</ol>
+<p>将这个包从eth0发出去，在物理网络上会使用外层的IP进行路由，最终到达物理机B。在物理机B上，tun0会解封装，将内层的源IP和目标IP拿出来，转发给相应的容器。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
-<li><p>DNS是网络世界的地址簿，可以通过域名查地址，因为域名服务器是按照树状结构组织的，因而域名查找是使用递归的方法，并通过缓存的方式增强性能；</p>
+<li><p>Calico推荐使用物理机作为路由器的模式，这种模式没有虚拟化开销，性能比较高。</p>
 </li>
-<li><p>在域名和IP的映射过程中，给了应用基于域名做负载均衡的机会，可以是简单的负载均衡，也可以根据地址和运营商做全局的负载均衡。</p>
+<li><p>Calico的主要组件包括路由、iptables的配置组件Felix、路由广播组件BGP Speaker，以及大规模场景下的BGP Route Reflector。</p>
+</li>
+<li><p>为解决跨网段的问题，Calico还有一种IPIP模式，也即通过打隧道的方式，从隧道端点来看，将本来不是邻居的两台机器，变成相邻的机器。</p>
 </li>
 </ul>
+<p>最后，给你留两个思考题：</p>
 <ol>
-<li><p>全局负载均衡为什么要分地址和运营商呢？</p>
+<li><p>将Calico部署在公有云上的时候，经常会选择使用IPIP模式，你知道这是为什么吗？</p>
 </li>
-<li><p>全局负载均衡使用过程中，常常遇到失灵的情况，你知道具体有哪些情况吗？对应应该怎么来解决呢？</p>
+<li><p>容器是用来部署微服务的，微服务之间的通信，除了网络要互通，还需要高效地传输信息，例如下单的商品、价格、数量、支付的钱等等，这些要通过什么样的协议呢？</p>
 </li>
 </ol>
 
@@ -446,7 +471,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://MerlinCLZ.github.io/17-DNS%E5%8D%8F%E8%AE%AE/">http://MerlinCLZ.github.io/17-DNS%E5%8D%8F%E8%AE%AE/</a>
+                    <a href="http://MerlinCLZ.github.io/21-%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%B9%8BCalico/">http://MerlinCLZ.github.io/21-%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%B9%8BCalico/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -535,13 +560,13 @@
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/18-HttpDNS/">
+                <a href="/22-RPC%E5%8D%8F%E8%AE%AE%E7%BB%BC%E8%BF%B0/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/11.jpg" class="responsive-img" alt="18-HttpDNS">
+                        <img src="/medias/featureimages/13.jpg" class="responsive-img" alt="22-RPC协议综述">
                         
-                        <span class="card-title">18-HttpDNS</span>
+                        <span class="card-title">22-RPC协议综述</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -552,7 +577,7 @@
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2023-03-28
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-04-11
                         </span>
                         <span class="publish-author">
                             
@@ -580,13 +605,13 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/16-P2P%E5%8D%8F%E8%AE%AE/">
+                <a href="/20-%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%B9%8BFlannel/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/13.jpg" class="responsive-img" alt="16-P2P协议">
+                        <img src="/medias/featureimages/8.jpg" class="responsive-img" alt="20-容器网络之Flannel">
                         
-                        <span class="card-title">16-P2P协议</span>
+                        <span class="card-title">20-容器网络之Flannel</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -597,7 +622,7 @@
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2023-03-23
+                                <i class="far fa-clock fa-fw icon-date"></i>2023-04-05
                             </span>
                         <span class="publish-author">
                             

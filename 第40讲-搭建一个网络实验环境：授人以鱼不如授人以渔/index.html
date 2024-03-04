@@ -4,9 +4,9 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="20-跨语言类RPC协议, Cheng Wenqing&#39;s Blog">
-    <meta name="description" content="第20讲 | 跨语言类RPC协议到目前为止，咱们讲了四种RPC，分别是ONC RPC、基于XML的SOAP、基于JSON的RESTful和Hessian2。
-通过学习，我们知道，二进制的传输性能好，文本类的传输性能差一些；二进制的难以跨语言">
+    <meta name="keywords" content="Cheng Wenqing&#39;s Blog">
+    <meta name="description" content="第40讲 | 搭建一个网络实验环境：授人以鱼不如授人以渔因为这门课是基础课程，而且配合音频的形式发布，所以我多以理论为主来进行讲解。在专栏更新的过程中，不断有同学让我推荐一些网络方面的书籍，还有同学说能不能配合一些实验来说明理论。
+的确，网">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -18,7 +18,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>20-跨语言类RPC协议 | Cheng Wenqing&#39;s Blog</title>
+    <title>Cheng Wenqing&#39;s Blog</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -270,12 +270,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/21.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/0.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">20-跨语言类RPC协议</h1>
+                    <h1 class="description center-align post-title"></h1>
                 </div>
             </div>
         </div>
@@ -297,13 +297,9 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                    <div class="article-tag">
-                        
-                            <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">
-                                <span class="chip bg-color">计算机网络</span>
-                            </a>
-                        
-                    </div>
+                          <div class="article-tag">
+                            <span class="chip bg-color">无标签</span>
+                          </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -315,7 +311,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2023-04-02
+                    2024-03-04
                 </div>
                 
 
@@ -336,117 +332,123 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="第20讲-跨语言类RPC协议"><a href="#第20讲-跨语言类RPC协议" class="headerlink" title="第20讲 | 跨语言类RPC协议"></a>第20讲 | 跨语言类RPC协议</h1><p>到目前为止，咱们讲了四种RPC，分别是ONC RPC、基于XML的SOAP、基于JSON的RESTful和Hessian2。</p>
-<p>通过学习，我们知道，二进制的传输性能好，文本类的传输性能差一些；二进制的难以跨语言，文本类的可以跨语言；要写协议文件的严谨一些，不写协议文件的灵活一些。虽然都有服务发现机制，有的可以进行服务治理，有的则没有。</p>
-<p>我们也看到了RPC从最初的客户端服务器模式，最终演进到微服务。对于RPC框架的要求越来越多了，具体有哪些要求呢？</p>
-<ul>
-<li><p>首先，传输性能很重要。因为服务之间的调用如此频繁了，还是二进制的越快越好。</p>
-</li>
-<li><p>其次，跨语言很重要。因为服务多了，什么语言写成的都有，而且不同的场景适宜用不同的语言，不能一个语言走到底。</p>
-</li>
-<li><p>最好既严谨又灵活，添加个字段不用重新编译和发布程序。</p>
-</li>
-<li><p>最好既有服务发现，也有服务治理，就像Dubbo和Spring Cloud一样。</p>
-</li>
-</ul>
-<h2 id="Protocol-Buffers"><a href="#Protocol-Buffers" class="headerlink" title="Protocol Buffers"></a>Protocol Buffers</h2><p>这是要多快好省地建设社会主义啊。理想还是要有的嘛，这里我就来介绍一个向“理想”迈进的GRPC。</p>
-<p>GRPC首先满足二进制和跨语言这两条，二进制说明压缩效率高，跨语言说明更灵活。但是又是二进制，又是跨语言，这就相当于两个人沟通，你不但说方言，还说缩略语，人家怎么听懂呢？所以，最好双方弄一个协议约定文件，里面规定好双方沟通的专业术语，这样沟通就顺畅多了。</p>
-<p>对于GRPC来讲，二进制序列化协议是Protocol Buffers。首先，需要定义一个协议文件.proto。</p>
-<p>我们还看买极客时间专栏的这个例子。</p>
-<pre><code>syntax = “proto3”;
-package com.geektime.grpc
-option java_package = “com.geektime.grpc”;
-message Order &#123;
-  required string date = 1;
-  required string classname = 2;
-  required string author = 3;
-  required int price = 4;
-&#125;
+                <h1 id="第40讲-搭建一个网络实验环境：授人以鱼不如授人以渔"><a href="#第40讲-搭建一个网络实验环境：授人以鱼不如授人以渔" class="headerlink" title="第40讲 | 搭建一个网络实验环境：授人以鱼不如授人以渔"></a>第40讲 | 搭建一个网络实验环境：授人以鱼不如授人以渔</h1><p>因为这门课是基础课程，而且配合音频的形式发布，所以我多以理论为主来进行讲解。在专栏更新的过程中，不断有同学让我推荐一些网络方面的书籍，还有同学说能不能配合一些实验来说明理论。</p>
+<p>的确，网络是一门实验性很强的学科，就像我在开篇词里面说的一样： <strong>一看觉得懂，一问就打鼓，一用就糊涂。</strong> 在写专栏的过程中，我自己也深深体会到了。这个时候，我常常会拿一个现实的环境，上手操作一下，抓个包看看，这样心里就会有定论。</p>
+<h2 id="《TCP-IP详解》实验环境搭建"><a href="#《TCP-IP详解》实验环境搭建" class="headerlink" title="《TCP&#x2F;IP详解》实验环境搭建"></a>《TCP&#x2F;IP详解》实验环境搭建</h2><p>对于网络方面的书籍，我当然首推Rechard Stevens的《 <a target="_blank" rel="noopener" href="https://book.douban.com/subject/1741925/">TCP&#x2F;IP illustrated</a>》（《TCP&#x2F;IP详解》）。这本书把理论讲得深入浅出，还配有大量的上手实践和抓包，看到这些抓包，原来不理解的很多理论，一下子就能懂了。</p>
+<p>这本书里有个拓扑图，书上的很多实验都是基于这个图的，但是这个拓扑图还是挺复杂的。我这里先不说，一会儿详细讲。</p>
+<p>Rechard Stevens，因为工作中有这么一个环境，很方便做实验，最终才写出了这样一本书，而我们一般人学习网络，没有这个环境应该怎么办呢？</p>
+<p>时代不同了，咱们现在有更加强大的工具了。例如，这里这么多的机器，我们可以用Docker来实现，多个网络可以用Open vSwitch来实现。你甚至不需要一台物理机，只要一台1核2G的虚拟机，就能将这个环境搭建起来。</p>
+<p>搭建这个环境的时候，需要一些脚本。我把脚本都放在了 <a target="_blank" rel="noopener" href="https://github.com/popsuper1982/tcpipillustrated">Github</a> 里面，你可以自己取用。</p>
+<h3 id="1-创建一个Ubuntu虚拟机"><a href="#1-创建一个Ubuntu虚拟机" class="headerlink" title="1.创建一个Ubuntu虚拟机"></a>1.创建一个Ubuntu虚拟机</h3><p>在你的笔记本电脑上，用VirtualBox创建就行。1核2G，随便一台电脑都能搭建起来。</p>
+<p>首先，我们先下载一个Ubuntu的镜像。我是从 <a target="_blank" rel="noopener" href="https://www.ubuntu.com/download/alternative-downloads">Ubuntu官方网站</a> 下载的。</p>
+<p><img src="/images/13124/390a5bfb153fc95bdac0939194bc7387.jpg"></p>
+<p>然后，在VirtualBox里面安装Ubuntu。安装过程网上一大堆教程，你可以自己去看，我这里就不详细说了。</p>
+<p>这里我需要说明的是网络的配置。</p>
+<p>对于这个虚拟机，我们创建两个网卡，一个是Host-only，只有你的笔记本电脑上能够登录进去。这个网卡上的IP地址也只有在你的笔记本电脑上管用。这个网卡的配置比较稳定，用于在SSH上做操作。这样你的笔记本电脑就可以搬来搬去，在公司里安装一半，回家接着安装另一半都没问题。</p>
+<p><img src="/images/13124/ab1974fc25fe902ff8eeda598eb9c3ce.jpg"></p>
+<p>这里有一个虚拟的网桥，这个网络可以在管理&gt;主机网络管理里面进行配置。</p>
+<p><img src="/images/13124/49eea1f000c9a538271d46c25c0a7b13.jpg"></p>
+<p>在这里可以虚拟网桥的的IP地址，同时启用一个DHCP服务器，为新创建的虚拟机配置IP地址。</p>
+<p>另一个网卡配置为NAT网络，用于访问互联网。配置了NAT网络之后，只要你的笔记本电脑能上网，虚拟机就能上网。由于咱们在Ubuntu里面要安装一些东西，因而需要联网。</p>
+<p>你可能会问了，这个配置复杂吗？一点儿都不复杂。咱们讲 <a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/10742">虚拟机网络</a> 的时候，讲过这个。</p>
+<p><img src="/images/13124/2dd447992fbf4901f92a3dfdf8086bc4.jpg"></p>
+<p>安装完了Ubuntu之后，需要对Ubuntu里面的网卡进行配置。对于Ubuntu来讲，网卡的配置在&#x2F;etc&#x2F;network&#x2F;interfaces这个文件里面。在我的环境里，NAT的网卡名称为enp0s3，Host-only的网卡的名称为enp0s8，都可以配置为自动配置。</p>
+<pre><code>auto lo
+iface lo inet loopback
 
-message OrderResponse &#123;
-  required string message = 1;
-&#125;
+auto enp0s3
+iface enp0s3 inet dhcp
 
-service PurchaseOrder &#123;
-  rpc Purchase (Order) returns (OrderResponse) &#123;&#125;
-&#125;
+auto enp0s8
+iface enp0s8 inet dhcp
 </code></pre>
-<p>在这个协议文件中，我们首先指定使用proto3的语法，然后我们使用Protocol Buffers的语法，定义两个消息的类型，一个是发出去的参数，一个是返回的结果。里面的每一个字段，例如date、classname、author、price都有唯一的一个数字标识，这样在压缩的时候，就不用传输字段名称了，只传输这个数字标识就行了，能节省很多空间。</p>
-<p>最后定义一个Service，里面会有一个RPC调用的声明。</p>
-<p>无论使用什么语言，都有相应的工具生成客户端和服务端的Stub程序，这样客户端就可以像调用本地一样，调用远程的服务了。</p>
-<h2 id="协议约定问题"><a href="#协议约定问题" class="headerlink" title="协议约定问题"></a>协议约定问题</h2><p>Protocol Buffers是一款压缩效率极高的序列化协议，有很多设计精巧的序列化方法。</p>
-<p>对于int类型32位的，一般都需要4个Byte进行存储。在Protocol Buffers中，使用的是变长整数的形式。对于每一个Byte的8位，最高位都有特殊的含义。</p>
-<p>如果该位为 1，表示这个数字没完，后续的Byte也属于这个数字；如果该位为 0，则这个数字到此结束。其他的7个Bit才是用来表示数字的内容。因此，小于128的数字都可以用一个Byte表示；大于128的数字，比如130，会用两个字节来表示。</p>
-<p>对于每一个字段，使用的是TLV（Tag，Length，Value）的存储办法。</p>
-<p>其中Tag &#x3D; (field_num &lt;&lt; 3) | wire_type。field_num就是在proto文件中，给每个字段指定唯一的数字标识，而wire_type用于标识后面的数据类型。</p>
-<p><img src="/./img/images/12819/a66aa9ca6c6575f4b335881ae786ba10.jpg"></p>
-<p>例如，对于string author &#x3D; 3，在这里field_num为3，string的wire_type为2，于是 (field_num &lt;&lt; 3) | wire_type &#x3D; (11000) | 10 &#x3D; 11010 &#x3D; 26；接下来是Length，最后是Value为“liuchao”，如果使用UTF-8编码，长度为7个字符，因而Length为7。</p>
-<p>可见，在序列化效率方面，Protocol Buffers简直做到了极致。</p>
-<p>在灵活性方面，这种基于协议文件的二进制压缩协议往往存在更新不方便的问题。例如，客户端和服务器因为需求的改变需要添加或者删除字段。</p>
-<p>这一点上，Protocol Buffers考虑了兼容性。在上面的协议文件中，每一个字段都有修饰符。比如：</p>
+<p>这样，重启之后，IP就配置好了。</p>
+<h3 id="2-安装Docker和Open-vSwitch"><a href="#2-安装Docker和Open-vSwitch" class="headerlink" title="2.安装Docker和Open vSwitch"></a>2.安装Docker和Open vSwitch</h3><p>接下来，在Ubuntu里面，以root用户，安装Docker和Open vSwitch。</p>
+<p>你可以按照Docker的 <a target="_blank" rel="noopener" href="https://docs.docker.com/install/linux/docker-ce/ubuntu/">官方安装</a> <a target="_blank" rel="noopener" href="https://docs.docker.com/install/linux/docker-ce/ubuntu/">文档</a> 来做。我这里也贴一下我的安装过程。</p>
+<pre><code>apt-get remove docker docker-engine docker.io
+apt-get -y update
+apt-get -y install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg &gt; gpg
+apt-key add gpg
+apt-key fingerprint 0EBFCD88
+add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot;
+apt-get -y update
+apt-cache madison docker-ce
+apt-get -y install docker-ce=18.06.0~ce~3-0~ubuntu
+</code></pre>
+<p>之后，还需要安装Open vSwitch和Bridge。</p>
+<pre><code>apt-get -y install openvswitch-common openvswitch-dbg openvswitch-switch python-openvswitch openvswitch-ipsec openvswitch-pki openvswitch-vtep
+
+apt-get -y install bridge-utils
+
+apt-get -y install arping
+</code></pre>
+<h3 id="3-准备一个Docker的镜像"><a href="#3-准备一个Docker的镜像" class="headerlink" title="3.准备一个Docker的镜像"></a>3.准备一个Docker的镜像</h3><p><img src="/images/13124/4c0e633ddc53f3feb98946518c0cf21e.jpg"></p>
+<p>每个节点都是一个Docker，对应要有一个Docker镜像。这个镜像我已经打好了，你可以直接使用。</p>
+<pre><code>docker pull hub.c.163.com/liuchao110119163/ubuntu:tcpip
+</code></pre>
+<p>当然你也可以自己打这个镜像。Dockerfile就像这样：</p>
+<pre><code>FROM hub.c.163.com/public/ubuntu:14.04
+RUN apt-get -y update &amp;&amp; apt-get install -y iproute2 iputils-arping net-tools tcpdump curl telnet iputils-tracepath traceroute
+RUN mv /usr/sbin/tcpdump /usr/bin/tcpdump
+ENTRYPOINT /usr/sbin/sshd -D
+</code></pre>
+<h3 id="4-启动整个环境"><a href="#4-启动整个环境" class="headerlink" title="4.启动整个环境"></a>4.启动整个环境</h3><p>启动这个环境还是比较复杂的，我写成了一个脚本。在Git仓库里面，有一个文件 <a target="_blank" rel="noopener" href="http://setupenv.sh/">setupenv.sh</a> ，可以执行这个脚本，里面有两个参数，一个参数是NAT网卡的名字，一个是镜像的名称。</p>
+<pre><code>git clone https://github.com/popsuper1982/tcpipillustrated.git
+cd tcpipillustrated
+docker pull hub.c.163.com/liuchao110119163/ubuntu:tcpip
+chmod +x setupenv.sh
+./setupenv.sh enp0s3 hub.c.163.com/liuchao110119163/ubuntu:tcpip
+</code></pre>
+<p>这样，整个环境就搭建起来了，所有的容器之间都可以ping通，而且都可以上网。</p>
+<p>不过，我写的这个脚本对一些人来说可能会有点儿复杂，我这里也解释一下。</p>
+<p>首先 <strong>每一个节点，都启动一个容器</strong>。使用–privileged&#x3D;true方式，网络先不配置–net none。有两个二层网络，使用ovs-vsctl的add-br命令，创建两个网桥。</p>
+<p>pipework是一个很好的命令行工具，可以将容器连接到两个二层网络上。</p>
+<p>但是我们上面那个图里有两个比较特殊的网络，一个是从slip到bsdi的P2P网络，需要创建一个peer的两个网卡，然后两个Docker的网络namespace里面各塞进去一个。</p>
+<p>有关操作Docker的网络namespace的方式，咱们在 <a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/11465">容器网络</a> 那一节讲过ip netns命令。</p>
+<p>这里需要注意的是，P2P网络和下面的二层网络不是同一个网络。P2P网络的CIDR是140.252.13.64&#x2F;27，而下面的二层网络的CIDR是140.252.13.32&#x2F;27。如果按照&#x2F;24，看起来是一个网络，但是&#x2F;27就不是了。至于 <a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/7772">CIDR的计算方法</a>，你可以回去复习一下。</p>
+<p>另外需要 <strong>配置从sun到netb的点对点网络</strong>，方法还是通过peer网卡和ip netns的方式。</p>
+<p>这里有个特殊的地方，对于netb来讲，不是一个普通的路由器，因为netb两边是同一个二层网络，所以需要配置arp proxy。</p>
+<p>为了所有的节点之间互通，要配置一下路由策略，这里需要通过ip route命令。</p>
 <ul>
-<li><p>required：这个值不能为空，一定要有这么一个字段出现；</p>
+<li><p>对于slip来讲，bsdi左面13.66这个网口是网关。</p>
 </li>
-<li><p>optional：可选字段，可以设置，也可以不设置，如果不设置，则使用默认值；</p>
+<li><p>对于bsdi和svr4来讲，如果去外网，sun下面的网口13.33是网关。</p>
 </li>
-<li><p>repeated：可以重复0到多次。</p>
+<li><p>对于sun来讲，上面的网口1.29属于上面的二层网络了，它如果去外网，gateway下面的网口1.4就是外网网关。</p>
 </li>
-</ul>
-<p>如果我们想修改协议文件，对于赋给某个标签的数字，例如string author&#x3D;3，这个就不要改变了，改变了就不认了；也不要添加或者删除required字段，因为解析的时候，发现没有这个字段就会报错。对于optional和repeated字段，可以删除，也可以添加。这就给了客户端和服务端升级的可能性。</p>
-<p>例如，我们在协议里面新增一个string recommended字段，表示这个课程是谁推荐的，就将这个字段设置为optional。我们可以先升级服务端，当客户端发过来消息的时候，是没有这个值的，将它设置为一个默认值。我们也可以先升级客户端，当客户端发过来消息的时候，是有这个值的，那它将被服务端忽略。</p>
-<p>至此，我们解决了协议约定的问题。</p>
-<h2 id="网络传输问题"><a href="#网络传输问题" class="headerlink" title="网络传输问题"></a>网络传输问题</h2><p>接下来，我们来看网络传输的问题。</p>
-<p>如果是Java技术栈，GRPC的客户端和服务器之间通过Netty Channel作为数据通道，每个请求都被封装成HTTP 2.0的Stream。</p>
-<p>Netty是一个高效的基于异步IO的网络传输框架，这个上一节我们已经介绍过了。HTTP 2.0在 <a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/9410">第14讲</a>，我们也介绍过。HTTP 2.0协议将一个TCP的连接，切分成多个流，每个流都有自己的ID，而且流是有优先级的。流可以是客户端发往服务端，也可以是服务端发往客户端。它其实只是一个虚拟的通道。</p>
-<p>HTTP 2.0还将所有的传输信息分割为更小的消息和帧，并对它们采用二进制格式编码。</p>
-<p>通过这两种机制，HTTP 2.0的客户端可以将多个请求分到不同的流中，然后将请求内容拆成帧，进行二进制传输。这些帧可以打散乱序发送， 然后根据每个帧首部的流标识符重新组装，并且可以根据优先级，决定优先处理哪个流的数据。</p>
-<p><img src="/./img/images/12819/03d4a216c024a9e761ed43c6787bf7dd.jpg"></p>
-<p>由于基于HTTP 2.0，GRPC和其他的RPC不同，可以定义四种服务方法。</p>
-<p>第一种，也是最常用的方式是 <strong>单向RPC</strong>，即客户端发送一个请求给服务端，从服务端获取一个应答，就像一次普通的函数调用。</p>
-<pre><code>rpc SayHello(HelloRequest) returns (HelloResponse)&#123;&#125;
-</code></pre>
-<p>第二种方式是 <strong>服务端流式RPC</strong>，即服务端返回的不是一个结果，而是一批。客户端发送一个请求给服务端，可获取一个数据流用来读取一系列消息。客户端从返回的数据流里一直读取，直到没有更多消息为止。</p>
-<pre><code>rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse)&#123;&#125;
-</code></pre>
-<p>第三种方式为 <strong>客户端流式RPC</strong>，也即客户端的请求不是一个，而是一批。客户端用提供的一个数据流写入并发送一系列消息给服务端。一旦客户端完成消息写入，就等待服务端读取这些消息并返回应答。</p>
-<pre><code>rpc LotsOfGreetings(stream HelloRequest) returns (HelloResponse) &#123;&#125;
-</code></pre>
-<p>第四种方式为 <strong>双向流式 RPC</strong>，即两边都可以分别通过一个读写数据流来发送一系列消息。这两个数据流操作是相互独立的，所以客户端和服务端能按其希望的任意顺序读写，服务端可以在写应答前等待所有的客户端消息，或者它可以先读一个消息再写一个消息，或者读写相结合的其他方式。每个数据流里消息的顺序会被保持。</p>
-<pre><code>rpc BidiHello(stream HelloRequest) returns (stream HelloResponse)&#123;&#125;
-</code></pre>
-<p>如果基于HTTP 2.0，客户端和服务器之间的交互方式要丰富得多，不仅可以单方向远程调用，还可以实现当服务端状态改变的时候，主动通知客户端。</p>
-<p>至此，传输问题得到了解决。</p>
-<h2 id="服务发现与治理问题"><a href="#服务发现与治理问题" class="headerlink" title="服务发现与治理问题"></a>服务发现与治理问题</h2><p>最后是服务发现与服务治理的问题。</p>
-<p>GRPC本身没有提供服务发现的机制，需要借助其他的组件，发现要访问的服务端，在多个服务端之间进行容错和负载均衡。</p>
-<p>其实负载均衡本身比较简单，LVS、HAProxy、Nginx都可以做，关键问题是如何发现服务端，并根据服务端的变化，动态修改负载均衡器的配置。</p>
-<p>在这里我们介绍一种对于GRPC支持比较好的负载均衡器Envoy。其实Envoy不仅仅是负载均衡器，它还是一个高性能的C++写的Proxy转发器，可以配置非常灵活的转发规则。</p>
-<p>这些规则可以是静态的，放在配置文件中的，在启动的时候加载。要想重新加载，一般需要重新启动，但是Envoy支持热加载和热重启，这在一定程度上缓解了这个问题。</p>
-<p>当然，最好的方式是将规则设置为动态的，放在统一的地方维护。这个统一的地方在Envoy眼中被称为服务发现（Discovery Service），过一段时间去这里拿一下配置，就修改了转发策略。</p>
-<p>无论是静态的，还是动态的，在配置里面往往会配置四个东西。</p>
-<p>第一个是listener。Envoy既然是Proxy，专门做转发，就得监听一个端口，接入请求，然后才能够根据策略转发，这个监听的端口就称为listener。</p>
-<p>第二个是endpoint，是目标的IP地址和端口。这个是Proxy最终将请求转发到的地方。</p>
-<p>第三个是cluster。一个cluster是具有完全相同行为的多个endpoint，也即如果有三个服务端在运行，就会有三个IP和端口，但是部署的是完全相同的三个服务，它们组成一个cluster，从cluster到endpoint的过程称为负载均衡，可以轮询。</p>
-<p>第四个是route。有时候多个cluster具有类似的功能，但是是不同的版本号，可以通过route规则，选择将请求路由到某一个版本号，也即某一个cluster。</p>
-<p>如果是静态的，则将后端的服务端的IP地址拿到，然后放在配置文件里面就可以了。</p>
-<p>如果是动态的，就需要配置一个服务发现中心，这个服务发现中心要实现Envoy的API，Envoy可以主动去服务发现中心拉取转发策略。</p>
-<p><img src="/./img/images/12819/d0e559056729a4618e76feb2150ef9c7.jpg"></p>
-<p>看来，Envoy进程和服务发现中心之间要经常相互通信，互相推送数据，所以Envoy在控制面和服务发现中心沟通的时候，就可以使用GRPC，也就天然具备在用户面支撑GRPC的能力。</p>
-<p>Envoy如果复杂的配置，都能干什么事呢？</p>
-<p>一种常见的规则是 <strong>配置路由策略</strong>。例如后端的服务有两个版本，可以通过配置Envoy的route，来设置两个版本之间，也即两个cluster之间的route规则，一个占99%的流量，一个占1%的流量。</p>
-<p>另一种常见的规则就是 <strong>负载均衡策略</strong>。对于一个cluster下的多个endpoint，可以配置负载均衡机制和健康检查机制，当服务端新增了一个，或者挂了一个，都能够及时配置Envoy，进行负载均衡。</p>
-<p><img src="/./img/images/12819/722d4a1722e551be8c9583d6f5494032.jpg"></p>
-<p>所有这些节点的变化都会上传到注册中心，所有这些策略都可以通过注册中心进行下发，所以，更严格的意义上讲，注册中心可以称为 <strong>注册治理中心</strong>。</p>
-<p>Envoy这么牛，是不是能够将服务之间的相互调用全部由它代理？如果这样，服务也不用像Dubbo，或者Spring Cloud一样，自己感知到注册中心，自己注册，自己治理，对应用干预比较大。</p>
-<p>如果我们的应用能够意识不到服务治理的存在，就可以直接进行GRPC的调用。</p>
-<p>这就是未来服务治理的趋势 <strong>Serivce Mesh</strong>，也即应用之间的相互调用全部由Envoy进行代理，服务之间的治理也被Envoy进行代理，完全将服务治理抽象出来，到平台层解决。</p>
-<p><img src="/./img/images/12819/b5e7f54b07fea522ebc2469bbb081b5f.jpg"></p>
-<p>至此RPC框架中有治理功能的Dubbo、Spring Cloud、Service Mesh就聚齐了。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
-<li><p>GRPC是一种二进制，性能好，跨语言，还灵活，同时可以进行服务治理的多快好省的RPC框架，唯一不足就是还是要写协议文件。</p>
-</li>
-<li><p>GRPC序列化使用Protocol Buffers，网络传输使用HTTP 2.0，服务治理可以使用基于Envoy的Service Mesh。</p>
+<li><p>对于aix，solaris，gemini来讲，如果去外网，网关也是gateway下面的网口1.4。如果去下面的二层网口，网关是sun上面的网口1.29。</p>
 </li>
 </ul>
+<p>配置完了这些，图中的所有的节点都能相互访问了，最后还要解决 <strong>如何访问外网</strong> 的问题。</p>
+<p>我们还是需要创建一个peer网卡对。一个放在gateway里面，一个放在gateway外面。外面的网卡去外网的网关。</p>
+<p>在虚拟机上面，还需要配置一个iptables的地址伪装规则MASQUERADE，其实就是一个SNAT。因为容器里面要访问外网，因为外网是不认的，所以源地址不能用容器的地址，需要SNAT成为虚拟机的地址出去，回来的时候再NAT回来。</p>
+<p>配置这个环境还是挺复杂的，要用到咱们学到的很多知识。如果没有学习前面那些知识，直接就做这个实验，你肯定会很晕。但是只学理论也不行，要把理论都学过一遍，再做一遍实验，这才是一个不断迭代、更新知识库的过程。</p>
+<p>有了这个环境，《TCP&#x2F;IP详解》里面的所有实验都能做了，而且我打的这个Docker镜像里面，tcpdump等网络工具都安装了，你可以“为所欲为”了。</p>
+<h2 id="Open-vSwitch的实验"><a href="#Open-vSwitch的实验" class="headerlink" title="Open vSwitch的实验"></a>Open vSwitch的实验</h2><p>做了TCP&#x2F;IP详解的实验之后，网络程序设计这部分，你就有了坚实的基础。但是涉及到数据中心内部的一些网络技术，什么VLAN、VXLAN、STP等偏运维方向的，学习还是会比较困难。好在我们有Open vSwitch，也可以做大量的实验。</p>
+<p>Open vSwitch门槛比较高，里面的概念也非常多，可谓千头万绪。不过，通过我这么多年研究的经验，可以告诉你，这里面有一个很好的线索，那就是Open vSwitch会将自己对于网络的配置保存在一个本地库里面。这个库的表结构之间的关系就像这样：</p>
+<p><img src="/images/13124/439a996b7f8de9477cb00876f13a28d9.jpg"></p>
+<p>这个库其实是一个JSON，如果把这个JSON打印出来，能够看到更加详细的特性。按照这些特性一一实验，可以逐渐把Open vSwitch各个特性都掌握。</p>
+<p><img src="/images/13124/f00657f044e5afb07332f7236054b8a0.jpg"></p>
+<p>这里面最重要的概念就是 <strong>网桥</strong>。一个网桥会有流表控制网络包的处理过程，会有控制器下发流表，一个网桥上会有多个端口，可以对端口进行流控，一个端口可以设置VLAN，一个端口可以包含多个网卡，可以做绑定，网卡可以设置成为GRE和VXLAN。</p>
+<p>我写过一个Open vSwitch的实验教程，也放在了Github里面。这里面有这么几个比较重要的实验，你可以看一看。</p>
+<ul>
+<li><p>实验一：查看Open vSwitch的架构。我们在讲Open vSwitch的时候，提过Open vSwitch的架构，在这个实验中，我们可以查看Open vSwitch的各个模块以及启动的参数。</p>
+</li>
+<li><p>实验五：配置使用OpenFlow Controller，体验一把作为小区物业在监控室里面管控整个小区道路的样子。</p>
+</li>
+<li><p>实验八：测试Port的VLAN功能。看一下VLAN隔离究竟是什么样的。</p>
+</li>
+<li><p>实验十：QoS功能。体验一把如果使用HTB进行网卡限流。</p>
+</li>
+<li><p>实验十一：GRE和VXLAN隧道功能，看虚拟网络如何进行租户隔离。</p>
+</li>
+<li><p>实验十五：对Flow Table的操作，体验流表对网络包随心所欲的处理。</p>
+</li>
+</ul>
+<p>好了，关于整个环境的搭建我就讲到这里了。</p>
+<p>其实到这里，对于网络世界的探索才刚刚开始，只有经过你自己动手和思考产生的内容，才是真正属于你的知识！打开你的电脑，上手去实验吧！</p>
+<p>欢迎你留言和我讨论。趣谈网络协议，我们下期见！</p>
 
                 
             </div>
@@ -473,7 +475,7 @@ service PurchaseOrder &#123;
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://MerlinCLZ.github.io/20-%E8%B7%A8%E8%AF%AD%E8%A8%80%E7%B1%BBRPC%E5%8D%8F%E8%AE%AE/">http://MerlinCLZ.github.io/20-%E8%B7%A8%E8%AF%AD%E8%A8%80%E7%B1%BBRPC%E5%8D%8F%E8%AE%AE/</a>
+                    <a href="http://MerlinCLZ.github.io/%E7%AC%AC40%E8%AE%B2-%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83%EF%BC%9A%E6%8E%88%E4%BA%BA%E4%BB%A5%E9%B1%BC%E4%B8%8D%E5%A6%82%E6%8E%88%E4%BA%BA%E4%BB%A5%E6%B8%94/">http://MerlinCLZ.github.io/%E7%AC%AC40%E8%AE%B2-%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83%EF%BC%9A%E6%8E%88%E4%BA%BA%E4%BB%A5%E9%B1%BC%E4%B8%8D%E5%A6%82%E6%8E%88%E4%BA%BA%E4%BB%A5%E6%B8%94/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -510,11 +512,7 @@ service PurchaseOrder &#123;
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            
-                                <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">
-                                    <span class="chip bg-color">计算机网络</span>
-                                </a>
-                            
+                            <span class="chip bg-color">无标签</span>
                         </div>
                     
                 </div>
@@ -558,62 +556,18 @@ service PurchaseOrder &#123;
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
-                <a href="/Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+                <a href="/%E7%AC%AC40%E8%AE%B2-%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83%EF%BC%9A%E6%8E%88%E4%BA%BA%E4%BB%A5%E9%B1%BC%E4%B8%8D%E5%A6%82%E6%8E%88%E4%BA%BA%E4%BB%A5%E6%B8%94/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/4.jpg" class="responsive-img" alt="1-Linux性能优化">
+                        <img src="/medias/featureimages/0.jpg" class="responsive-img" alt="">
                         
-                        <span class="card-title">1-Linux性能优化</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2023-07-13
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-user fa-fw"></i>
-                            Merlin
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
-                        <span class="chip bg-color">Linux性能优化</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/19-RPC%E5%8D%8F%E8%AE%AE%E7%BB%BC%E8%BF%B0/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="/medias/featureimages/5.jpg" class="responsive-img" alt="19-RPC协议综述">
-                        
-                        <span class="card-title">19-RPC协议综述</span>
+                        <span class="card-title"></span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -624,7 +578,45 @@ service PurchaseOrder &#123;
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2023-03-31
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-03-04
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            Merlin
+                            
+                        </span>
+                    </div>
+                </div>
+
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/%E5%9F%BA%E4%BA%8EC-11%E5%8F%AF%E5%8F%98%E5%8F%82%E6%A8%A1%E6%9D%BF%E5%AE%9E%E7%8E%B0%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E9%A1%B9%E7%9B%AE%E6%80%BB%E7%BB%93/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/9.jpg" class="responsive-img" alt="基于C++11可变参模板实现的线程池项目总结">
+                        
+                        <span class="card-title">基于C++11可变参模板实现的线程池项目总结</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-02-20
                             </span>
                         <span class="publish-author">
                             
@@ -637,8 +629,8 @@ service PurchaseOrder &#123;
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">
-                        <span class="chip bg-color">计算机网络</span>
+                    <a href="/tags/%E4%B8%AA%E4%BA%BA%E9%A1%B9%E7%9B%AE/">
+                        <span class="chip bg-color">个人项目</span>
                     </a>
                     
                 </div>

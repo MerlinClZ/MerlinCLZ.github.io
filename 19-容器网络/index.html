@@ -4,10 +4,8 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="19-RPC协议综述, Cheng Wenqing&#39;s Blog">
-    <meta name="description" content="第19讲 | RPC协议综述前面我们讲了容器网络如何实现跨主机互通，以及微服务之间的相互调用。
-
-网络是打通了，那服务之间的互相调用，该怎么实现呢？你可能说，咱不是学过Socket吗。服务之间分调用方和被调用方，我们就建立一个TCP或者UD">
+    <meta name="keywords" content="19-容器网络, Cheng Wenqing&#39;s Blog">
+    <meta name="description" content="第19讲 | 容器网络：来去自由的日子，不买公寓去合租如果说虚拟机是买公寓，容器则相当于合租，有一定的隔离，但是隔离性没有那么好。云计算解决了基础资源层的弹性伸缩，却没有解决PaaS层应用随基础资源层弹性伸缩而带来的批量、快速部署问题。于是">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -19,7 +17,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>19-RPC协议综述 | Cheng Wenqing&#39;s Blog</title>
+    <title>19-容器网络 | Cheng Wenqing&#39;s Blog</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -271,12 +269,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/5.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/1.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">19-RPC协议综述</h1>
+                    <h1 class="description center-align post-title">19-容器网络</h1>
                 </div>
             </div>
         </div>
@@ -316,7 +314,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2023-03-31
+                    2023-04-02
                 </div>
                 
 
@@ -337,88 +335,177 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="第19讲-RPC协议综述"><a href="#第19讲-RPC协议综述" class="headerlink" title="第19讲 | RPC协议综述"></a>第19讲 | RPC协议综述</h1><p>前面我们讲了容器网络如何实现跨主机互通，以及微服务之间的相互调用。</p>
-<p><img src="/./img/images/12230/a0763d50fc4e8dcec37ae25a2f6cc60d.jpeg"></p>
-<p>网络是打通了，那服务之间的互相调用，该怎么实现呢？你可能说，咱不是学过Socket吗。服务之间分调用方和被调用方，我们就建立一个TCP或者UDP的连接，不就可以通信了？</p>
-<p><img src="/./img/images/12230/87c8ae36ae1b42653565008fc47aceea.jpg"></p>
-<p>你仔细想一下，这事儿没这么简单。我们就拿最简单的场景，客户端调用一个加法函数，将两个整数加起来，返回它们的和。</p>
-<p>如果放在本地调用，那是简单的不能再简单了，只要稍微学过一种编程语言，三下五除二就搞定了。但是一旦变成了远程调用，门槛一下子就上去了。</p>
-<p>首先你要会Socket编程，至少先要把咱们这门网络协议课学一下，然后再看N本砖头厚的Socket程序设计的书，学会咱们学过的几种Socket程序设计的模型。这就使得本来大学毕业就能干的一项工作，变成了一件五年工作经验都不一定干好的工作，而且，搞定了Socket程序设计，才是万里长征的第一步。后面还有很多问题呢！</p>
-<h2 id="如何解决这五个问题？"><a href="#如何解决这五个问题？" class="headerlink" title="如何解决这五个问题？"></a>如何解决这五个问题？</h2><h3 id="问题一：如何规定远程调用的语法？"><a href="#问题一：如何规定远程调用的语法？" class="headerlink" title="问题一：如何规定远程调用的语法？"></a>问题一：如何规定远程调用的语法？</h3><p>客户端如何告诉服务端，我是一个加法，而另一个是乘法。我是用字符串“add”传给你，还是传给你一个整数，比如1表示加法，2表示乘法？服务端该如何告诉客户端，我的这个加法，目前只能加整数，不能加小数，不能加字符串；而另一个加法“add1”，它能实现小数和整数的混合加法。那返回值是什么？正确的时候返回什么，错误的时候又返回什么？</p>
-<h3 id="问题二：如果传递参数？"><a href="#问题二：如果传递参数？" class="headerlink" title="问题二：如果传递参数？"></a>问题二：如果传递参数？</h3><p>我是先传两个整数，后传一个操作符“add”，还是先传操作符，再传两个整数？是不是像咱们数据结构里一样，如果都是UDP，想要实现一个逆波兰表达式，放在一个报文里面还好，如果是TCP，是一个流，在这个流里面，如何将两次调用进行分界？什么时候是头，什么时候是尾？把这次的参数和上次的参数混了起来，TCP一端发送出去的数据，另外一端不一定能一下子全部读取出来。所以，怎么才算读完呢？</p>
-<h3 id="问题三：如何表示数据？"><a href="#问题三：如何表示数据？" class="headerlink" title="问题三：如何表示数据？"></a>问题三：如何表示数据？</h3><p>在这个简单的例子中，传递的就是一个固定长度的int值，这种情况还好，如果是变长的类型，是一个结构体，甚至是一个类，应该怎么办呢？如果是int，不同的平台上长度也不同，该怎么办呢？</p>
-<p>在网络上传输超过一个Byte的类型，还有大端Big Endian和小端Little Endian的问题。</p>
-<p>假设我们要在32位四个Byte的一个空间存放整数1，很显然只要一个Byte放1，其他三个Byte放0就可以了。那问题是，最后一个Byte放1呢，还是第一个Byte放1呢？或者说1作为最低位，应该是放在32位的最后一个位置呢，还是放在第一个位置呢？</p>
-<p>最低位放在最后一个位置，叫作Little Endian，最低位放在第一个位置，叫作Big Endian。TCP&#x2F;IP协议栈是按照Big Endian来设计的，而X86机器多按照Little Endian来设计的，因而发出去的时候需要做一个转换。</p>
-<h3 id="问题四：如何知道一个服务端都实现了哪些远程调用？从哪个端口可以访问这个远程调用？"><a href="#问题四：如何知道一个服务端都实现了哪些远程调用？从哪个端口可以访问这个远程调用？" class="headerlink" title="问题四：如何知道一个服务端都实现了哪些远程调用？从哪个端口可以访问这个远程调用？"></a>问题四：如何知道一个服务端都实现了哪些远程调用？从哪个端口可以访问这个远程调用？</h3><p>假设服务端实现了多个远程调用，每个可能实现在不同的进程中，监听的端口也不一样，而且由于服务端都是自己实现的，不可能使用一个大家都公认的端口，而且有可能多个进程部署在一台机器上，大家需要抢占端口，为了防止冲突，往往使用随机端口，那客户端如何找到这些监听的端口呢？</p>
-<h3 id="问题五：发生了错误、重传、丢包、性能等问题怎么办？"><a href="#问题五：发生了错误、重传、丢包、性能等问题怎么办？" class="headerlink" title="问题五：发生了错误、重传、丢包、性能等问题怎么办？"></a>问题五：发生了错误、重传、丢包、性能等问题怎么办？</h3><p>本地调用没有这个问题，但是一旦到网络上，这些问题都需要处理，因为网络是不可靠的，虽然在同一个连接中，我们还可通过TCP协议保证丢包、重传的问题，但是如果服务器崩溃了又重启，当前连接断开了，TCP就保证不了了，需要应用自己进行重新调用，重新传输会不会同样的操作做两遍，远程调用性能会不会受影响呢？</p>
-<h2 id="协议约定问题"><a href="#协议约定问题" class="headerlink" title="协议约定问题"></a>协议约定问题</h2><p>看到这么多问题，你是不是想起了我 <a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/7581">第一节</a> 讲过的这张图。</p>
-<p><img src="/./img/images/12230/7be56272a7e738b6cfe5bcbf658c3933.jpg"></p>
-<p>本地调用函数里有很多问题，比如词法分析、语法分析、语义分析等等，这些编译器本来都能帮你做了。但是在远程调用中，这些问题你都需要重新操心。</p>
-<p>很多公司的解决方法是，弄一个核心通信组，里面都是Socket编程的大牛，实现一个统一的库，让其他业务组的人来调用，业务的人不需要知道中间传输的细节。通信双方的语法、语义、格式、端口、错误处理等，都需要调用方和被调用方开会协商，双方达成一致。一旦有一方改变，要及时通知对方，否则通信就会有问题。</p>
-<p>可是不是每一个公司都有这种大牛团队，往往只有大公司才配得起，那有没有已经实现好的框架可以使用呢？</p>
-<p>当然有。一个大牛Bruce Jay Nelson写了一篇论文 <a target="_blank" rel="noopener" href="http://www.cs.cmu.edu/~dga/15-712/F07/papers/birrell842.pdf">Implementing Remote Procedure Calls</a>，定义了RPC的调用标准。后面所有RPC框架，都是按照这个标准模式来的。</p>
-<p><img src="/./img/images/12230/2933bbd1ee6471b6de3824bb86f6d0db.jpg"></p>
-<p>当客户端的应用想发起一个远程调用时，它实际是通过本地调用本地调用方的Stub。它负责将调用的接口、方法和参数，通过约定的协议规范进行编码，并通过本地的RPCRuntime进行传输，将调用网络包发送到服务器。</p>
-<p>服务器端的RPCRuntime收到请求后，交给提供方Stub进行解码，然后调用服务端的方法，服务端执行方法，返回结果，提供方Stub将返回结果编码后，发送给客户端，客户端的RPCRuntime收到结果，发给调用方Stub解码得到结果，返回给客户端。</p>
-<p>这里面分了三个层次，对于用户层和服务端，都像是本地调用一样，专注于业务逻辑的处理就可以了。对于Stub层，处理双方约定好的语法、语义、封装、解封装。对于RPCRuntime，主要处理高性能的传输，以及网络的错误和异常。</p>
-<p>最早的RPC的一种实现方式称为Sun RPC或ONC RPC。Sun公司是第一个提供商业化RPC库和 RPC编译器的公司。这个RPC框架是在NFS协议中使用的。</p>
-<p>NFS（Network File System）就是网络文件系统。要使NFS成功运行，要启动两个服务端，一个是mountd，用来挂载文件路径；一个是nfsd，用来读写文件。NFS可以在本地mount一个远程的目录到本地的一个目录，从而本地的用户在这个目录里面写入、读出任何文件的时候，其实操作的是远程另一台机器上的文件。</p>
-<p>操作远程和远程调用的思路是一样的，就像操作本地一样。所以NFS协议就是基于RPC实现的。当然无论是什么RPC，底层都是Socket编程。</p>
-<p><img src="/./img/images/12230/2a0fd84c2d3dced623511e2a5226d0eb.jpg"></p>
-<p>XDR（External Data Representation，外部数据表示法）是一个标准的数据压缩格式，可以表示基本的数据类型，也可以表示结构体。</p>
-<p>这里是几种基本的数据类型。</p>
-<p><img src="/./img/images/12230/4a649954fea1cee22fcfa8bdb34c03af.jpg"></p>
-<p>在RPC的调用过程中，所有的数据类型都要封装成类似的格式。而且RPC的调用和结果返回，也有严格的格式。</p>
+                <h1 id="第19讲-容器网络：来去自由的日子，不买公寓去合租"><a href="#第19讲-容器网络：来去自由的日子，不买公寓去合租" class="headerlink" title="第19讲 | 容器网络：来去自由的日子，不买公寓去合租"></a>第19讲 | 容器网络：来去自由的日子，不买公寓去合租</h1><p>如果说虚拟机是买公寓，容器则相当于合租，有一定的隔离，但是隔离性没有那么好。云计算解决了基础资源层的弹性伸缩，却没有解决PaaS层应用随基础资源层弹性伸缩而带来的批量、快速部署问题。于是，容器应运而生。</p>
+<p>容器就是Container，而Container的另一个意思是集装箱。其实 <strong>容器的思想就是要变成软件交付的集装箱</strong>。集装箱的特点，一是打包，二是标准。</p>
+<p><img src="/./img/images/11465/797ca1b09e4ayy527862e050dbd70cd0.jpg"></p>
+<p>在没有集装箱的时代，假设要将货物从A运到B，中间要经过三个码头、换三次船。每次都要将货物卸下船来，弄得乱七八糟，然后还要再搬上船重新整齐摆好。因此在没有集装箱的时候，每次换船，船员们都要在岸上待几天才能干完活。</p>
+<p>有了尺寸全部都一样的集装箱以后，可以把所有的货物都打包在一起，所以每次换船的时候，一个箱子整体搬过去就行了，小时级别就能完成，船员再也不用耗费很长时间了。这是集装箱的“打包”“标准”两大特点在生活中的应用。</p>
+<p><img src="/./img/3417576013de1c8b2078a312ec75b7ae.jpg"></p>
+<p>那么容器如何对应用打包呢？</p>
+<p>学习集装箱，首先要有个封闭的环境，将货物封装起来，让货物之间互不干扰，互相隔离，这样装货卸货才方便。</p>
+<p>封闭的环境主要使用了两种技术，一种是 <strong>看起来是隔离的技术</strong>，称为 <strong>namespace</strong>，也即每个 namespace中的应用看到的是不同的 IP地址、用户空间、进程号等。另一种是 <strong>用起来是隔离的技术</strong>，称为 <strong>cgroup</strong>，也即明明整台机器有很多的 CPU、内存，而一个应用只能用其中的一部分。</p>
+<p>有了这两项技术，就相当于我们焊好了集装箱。接下来的问题就是如何“将这个集装箱标准化”，并在哪艘船上都能运输。这里的标准首先就是 <strong>镜像</strong>。</p>
+<p>所谓镜像，就是将你焊好集装箱的那一刻，将集装箱的状态保存下来，就像孙悟空说：“定！”，集装箱里的状态就被定在了那一刻，然后将这一刻的状态保存成一系列文件。无论从哪里运行这个镜像，都能完整地还原当时的情况。</p>
+<p><img src="/./img/fec2010a23814e7b361b29e4080e3e5b.jpg"></p>
+<p>接下来我们就具体来看看，这两种网络方面的打包技术。</p>
+<h2 id="命名空间（namespace）"><a href="#命名空间（namespace）" class="headerlink" title="命名空间（namespace）"></a>命名空间（namespace）</h2><p>我们首先来看网络namespace。</p>
+<p>namespace翻译过来就是命名空间。其实很多面向对象的程序设计语言里面，都有命名空间这个东西。大家一起写代码，难免会起相同的名词，编译就会冲突。而每个功能都有自己的命名空间，在不同的空间里面，类名相同，不会冲突。</p>
+<p>在Linux下也是这样的，很多的资源都是全局的。比如<strong>进程有全局的进程ID，网络也有全局的路由表</strong>。但是，当一台Linux上跑多个进程的时候，如果我们觉得使用不同的路由策略，这些进程可能会冲突，那就需要将这个进程放在一个独立的namespace里面，这样就可以独立配置网络了。</p>
+<p>网络的namespace由<strong>ip netns</strong>命令操作。它可以创建、删除、查询namespace。</p>
+<p>我们再来看将你们宿舍放进一台物理机的那个图。你们宿舍长的电脑是一台路由器，你现在应该知道怎么实现这个路由器吧？可以创建一个Router虚拟机来做这件事情，但是还有一个更加简单的办法，就是我在图里画的这条虚线，这个就是通过namespace实现的。</p>
+<p><img src="/./img/1a5d299c2eb5480eda93a8f8e3b3ca1a.jpg"></p>
+<p>我们创建一个routerns，于是一个独立的网络空间就产生了。你可以在里面尽情设置自己的规则。</p>
+<pre><code>ip netns add routerns
+</code></pre>
+<p>既然是路由器，肯定要能转发嘛，因而forward开关要打开。</p>
+<pre><code>ip netns exec routerns sysctl -w net.ipv4.ip_forward=1
+</code></pre>
+<p>exec的意思就是进入这个网络空间做点事情。初始化一下iptables，因为这里面要配置NAT规则。</p>
+<pre><code>ip netns exec routerns iptables-save -c
+ip netns exec routerns iptables-restore -c
+</code></pre>
+<p>路由器需要有一张网卡连到br0上，因而要创建一个网卡。</p>
+<pre><code>ovs-vsctl -- add-port br0 taprouter -- set Interface taprouter type=internal -- set Interface taprouter external-ids:iface-status=active -- set Interface taprouter external-ids:attached-mac=fa:16:3e:84:6e:cc
+</code></pre>
+<p>这个网络创建完了，但是是在namespace外面的，如何进去呢？可以通过这个命令：</p>
+<pre><code>ip link set taprouter netns routerns
+</code></pre>
+<p>要给这个网卡配置一个IP地址，当然应该是虚拟机网络的网关地址。例如虚拟机私网网段为192.168.1.0&#x2F;24，网关的地址往往为192.168.1.1。</p>
+<pre><code>ip netns exec routerns ip -4 addr add 192.168.1.1/24 brd 192.168.1.255 scope global dev taprouter
+</code></pre>
+<p>为了访问外网，还需要另一个网卡连在外网网桥br-ex上，并且塞在namespace里面。</p>
+<pre><code>ovs-vsctl -- add-port br-ex taprouterex -- set Interface taprouterex type=internal -- set Interface taprouterex external-ids:iface-status=active -- set Interface taprouterex external-ids:attached-mac=fa:16:3e:68:12:c0
+</code></pre>
+<pre><code>ip link set taprouterex netns routerns
+</code></pre>
+<p>我们还需要为这个网卡分配一个地址，这个地址应该和物理外网网络在一个网段。假设物理外网为16.158.1.0&#x2F;24，可以分配一个外网地址16.158.1.100&#x2F;24。</p>
+<pre><code>ip netns exec routerns ip -4 addr add 16.158.1.100/24 brd 16.158.1.255 scope global dev taprouterex
+</code></pre>
+<p>接下来，既然是路由器，就需要配置路由表，路由表是这样的：</p>
+<pre><code>ip netns exec routerns route -n
+Kernel IP routing table
+Destination   Gateway     Genmask     Flags Metric Ref  Use Iface
+0.0.0.0     16.158.1.1  0.0.0.0     UG  0   0    0 taprouterex
+192.168.1.0    0.0.0.0     255.255.255.0  U   0   0    0 taprouter
+16.158.1.0  0.0.0.0     255.255.255.0  U   0   0    0 taprouterex
+</code></pre>
+<p>路由表中的默认路由是去物理外网的，去192.168.1.0&#x2F;24也即虚拟机私网，走下面的网卡，去16.158.1.0&#x2F;24也即物理外网，走上面的网卡。</p>
+<p>我们在前面的章节讲过，如果要在虚拟机里面提供服务，提供给外网的客户端访问，客户端需要访问外网IP3，会在外网网口NAT称为虚拟机私网IP。这个NAT规则要在这个namespace里面配置。</p>
+<pre><code>ip netns exec routerns iptables -t nat -nvL
+Chain PREROUTING
+target  prot opt  in  out  source  destination
+DNAT  all  --  *  *  0.0.0.0/0 16.158.1.103 to:192.168.1.3
+Chain POSTROUTING
+target  prot opt  in  out  source   destination
+SNAT  all  --  *  *  192.168.1.3  0.0.0.0/0 to:16.158.1.103
+</code></pre>
+<p>这里面有两个规则，一个是SNAT，将虚拟机的私网IP 192.168.1.3 NAT成物理外网IP 16.158.1.103。一个是DNAT，将物理外网IP 16.158.1.103 NAT成虚拟机私网IP 192.168.1.3。</p>
+<p>至此为止，基于网络namespace的路由器实现完毕。</p>
+<h2 id="机制网络（cgroup）"><a href="#机制网络（cgroup）" class="headerlink" title="机制网络（cgroup）"></a>机制网络（cgroup）</h2><p>我们再来看打包的另一个机制网络cgroup。</p>
+<p>cgroup全称control groups，是<strong>Linux内核提供的一种可以限制、隔离进程使用的资源机制。</strong></p>
+<p>cgroup能控制哪些资源呢？它有很多子系统：</p>
 <ul>
-<li><p>XID唯一标识一对请求和回复。请求为0，回复为1。</p>
+<li><p>CPU子系统使用调度程序为进程控制CPU的访问；</p>
 </li>
-<li><p>RPC有版本号，两端要匹配RPC协议的版本号。如果不匹配，就会返回Deny，原因就是RPC_MISMATCH。</p>
+<li><p>cpuset，如果是多核心的CPU，这个子系统会为进程分配单独的CPU和内存；</p>
 </li>
-<li><p>程序有编号。如果服务端找不到这个程序，就会返回PROG_UNAVAIL。</p>
+<li><p>memory子系统，设置进程的内存限制以及产生内存资源报告；</p>
 </li>
-<li><p>程序有版本号。如果程序的版本号不匹配，就会返回PROG_MISMATCH。</p>
+<li><p>blkio子系统，设置限制每个块设备的输入输出控制；</p>
 </li>
-<li><p>一个程序可以有多个方法，方法也有编号，如果找不到方法，就会返回PROC_UNAVAIL。</p>
-</li>
-<li><p>调用需要认证鉴权，如果不通过，则Deny。</p>
-</li>
-<li><p>最后是参数列表，如果参数无法解析，则返回GABAGE_ARGS。</p>
+<li><p>net_cls，这个子系统使用等级识别符（classid）标记网络数据包，可允许Linux 流量控制程序（tc）识别从具体cgroup中生成的数据包。</p>
 </li>
 </ul>
-<p><img src="/./img/images/12230/c724675527afdbd43964bdf24684fa65.jpg"></p>
-<p>为了可以成功调用RPC，在客户端和服务端实现RPC的时候，首先要定义一个双方都认可的程序、版本、方法、参数等。</p>
-<p><img src="/./img/images/12230/5c3ebb31ac4415d7895247bf8758fa58.jpg"></p>
-<p>如果还是上面的加法，则双方约定为一个协议定义文件，同理如果是NFS、mount和读写，也会有类似的定义。</p>
-<p>有了协议定义文件，ONC RPC会提供一个工具，根据这个文件生成客户端和服务器端的Stub程序。</p>
-<p><img src="/./img/images/12230/27dc1ccd0481408055c87e0e5d8b02b9.jpg"></p>
-<p>最下层的是XDR文件，用于编码和解码参数。这个文件是客户端和服务端共享的，因为只有双方一致才能成功通信。</p>
-<p>在客户端，会调用clnt_create创建一个连接，然后调用add_1，这是一个Stub函数，感觉是在调用本地一样。其实是这个函数发起了一个RPC调用，通过调用clnt_call来调用ONC RPC的类库，来真正发送请求。调用的过程非常复杂，一会儿我详细说这个。</p>
-<p>当然服务端也有一个Stub程序，监听客户端的请求，当调用到达的时候，判断如果是add，则调用真正的服务端逻辑，也即将两个数加起来。</p>
-<p>服务端将结果返回服务端的Stub，这个Stub程序发送结果给客户端，客户端的Stub程序正在等待结果，当结果到达客户端Stub，就将结果返回给客户端的应用程序，从而完成整个调用过程。</p>
-<p>有了这个RPC的框架，前面五个问题中的前三个“如何规定远程调用的语法？”“如何传递参数？”以及“如何表示数据？”基本解决了，这三个问题我们统称为 <strong>协议约定问题</strong>。</p>
-<h2 id="传输问题"><a href="#传输问题" class="headerlink" title="传输问题"></a>传输问题</h2><p>但是错误、重传、丢包、性能等问题还没有解决，这些问题我们统称为 <strong>传输问题</strong>。这个就不用Stub操心了，而是由ONC RPC的类库来实现。这是大牛们实现的，我们只要调用就可以了。</p>
-<p><img src="/./img/images/12230/33e1afe4a79e81096e09b850424930e4.jpg"></p>
-<p>在这个类库中，为了解决传输问题，对于每一个客户端，都会创建一个传输管理层，而每一次RPC调用，都会是一个任务，在传输管理层，你可以看到熟悉的队列机制、拥塞窗口机制等。</p>
-<p>由于在网络传输的时候，经常需要等待，因而同步的方式往往效率比较低，因而也就有Socket的异步模型。为了能够异步处理，对于远程调用的处理，往往是通过状态机来实现的。只有当满足某个状态的时候，才进行下一步，如果不满足状态，不是在那里等，而是将资源留出来，用来处理其他的RPC调用。</p>
-<p><img src="/./img/images/12230/0258775aac1126735504c9a6399745f5.jpg"></p>
-<p>从这个图可以看出，这个状态转换图还是很复杂的。</p>
-<p>首先，进入起始状态，查看RPC的传输层队列中有没有空闲的位置，可以处理新的RPC任务。如果没有，说明太忙了，或直接结束或重试。如果申请成功，就可以分配内存，获取服务的端口号，然后连接服务器。</p>
-<p>连接的过程要有一段时间，因而要等待连接的结果，会有连接失败，或直接结束或重试。如果连接成功，则开始发送RPC请求，然后等待获取RPC结果，这个过程也需要一定的时间；如果发送出错，可以重新发送；如果连接断了，可以重新连接；如果超时，可以重新传输；如果获取到结果，就可以解码，正常结束。</p>
-<p>这里处理了连接失败、重试、发送失败、超时、重试等场景。不是大牛真写不出来，因而实现一个RPC的框架，其实很有难度。</p>
-<h2 id="服务发现问题"><a href="#服务发现问题" class="headerlink" title="服务发现问题"></a>服务发现问题</h2><p>传输问题解决了，我们还遗留一个问题，就是问题四“如何找到RPC服务端的那个随机端口”。这个问题我们称为服务发现问题。在ONC RPC中，服务发现是通过portmapper实现的。</p>
-<p><img src="/./img/images/12230/2aff190d1f878749d2a5bd73228ca37c.jpg"></p>
-<p>portmapper会启动在一个众所周知的端口上，RPC程序由于是用户自己写的，会监听在一个随机端口上，但是RPC程序启动的时候，会向portmapper注册。客户端要访问RPC服务端这个程序的时候，首先查询portmapper，获取RPC服务端程序的随机端口，然后向这个随机端口建立连接，开始RPC调用。从图中可以看出，mount命令的RPC调用，就是这样实现的。</p>
+<p>我们这里最关心的是net_cls，它可以和前面讲过的TC关联起来。</p>
+<p>cgroup提供了一个虚拟文件系统，作为进行分组管理和各子系统设置的用户接口。要使用cgroup，必须挂载cgroup文件系统，一般情况下都是挂载到&#x2F;sys&#x2F;fs&#x2F;cgroup目录下。</p>
+<p>所以首先我们要挂载一个net_cls的文件系统。</p>
+<pre><code>mkdir /sys/fs/cgroup/net_cls
+mount -t cgroup -onet_cls net_cls /sys/fs/cgroup/net_cls
+</code></pre>
+<p>接下来我们要配置TC了。还记得咱们实验TC的时候那颗树吗？</p>
+<p><img src="/./img/3d8555e9c76272f6baaeb50d2eb72611.jpg"></p>
+<p>当时我们通过这个命令设定了规则：从1.2.3.4来的，发送给port 80的包，从1:10走；其他从1.2.3.4发送来的包从1:11走；其他的走默认。</p>
+<pre><code>tc filter add dev eth0 protocol ip parent 1:0 prio 1 u32 match ip src 1.2.3.4 match ip dport 80 0xffff flowid 1:10
+tc filter add dev eth0 protocol ip parent 1:0 prio 1 u32 match ip src 1.2.3.4 flowid 1:11
+</code></pre>
+<p>这里是根据源IP来设定的，现在有了cgroup，我们按照cgroup再来设定规则。</p>
+<pre><code>tc filter add dev eth0 protocol ip parent 1:0 prio 1 handle 1: cgroup
+</code></pre>
+<p>假设我们有两个用户a和b，要对它们进行带宽限制。</p>
+<p>首先，我们要创建两个net_cls。</p>
+<pre><code>mkdir /sys/fs/cgroup/net_cls/a
+mkdir /sys/fs/cgroup/net_cls/b
+</code></pre>
+<p>假设用户a启动的进程ID为12345，把它放在net_cls&#x2F;a&#x2F;tasks文件中。同样假设用户b启动的进程ID为12346，把它放在net_cls&#x2F;b&#x2F;tasks文件中。</p>
+<p>net_cls&#x2F;a目录下面，还有一个文件net_cls.classid，我们放flowid 1:10。net_cls&#x2F;b目录下面，也创建一个文件net_cls.classid，我们放flowid 1:11。</p>
+<p>这个数字怎么放呢？要转换成一个0xAAAABBBB的值，AAAA对应class中冒号前面的数字，而BBBB对应后面的数字。</p>
+<pre><code>echo 0x00010010 &gt; /sys/fs/cgroup/net_cls/a/net_cls.classid
+echo 0x00010011 &gt; /sys/fs/cgroup/net_cls/b/net_cls.classid
+</code></pre>
+<p>这样用户a的进程发的包，会打上1:10这个标签；用户b的进程发的包，会打上1:11这个标签。然后TC根据这两个标签，让用户a的进程的包走左边的分支，用户b的进程的包走右边的分支。</p>
+<h2 id="容器网络中如何融入物理网络？"><a href="#容器网络中如何融入物理网络？" class="headerlink" title="容器网络中如何融入物理网络？"></a>容器网络中如何融入物理网络？</h2><p>了解了容器背后的技术，接下来我们来看，容器网络究竟是如何融入物理网络的？</p>
+<p>如果你使用docker run运行一个容器，你应该能看到这样一个拓扑结构。</p>
+<p><img src="/./img/eba73892697293f0bde34aa30a255aae.jpg"></p>
+<p>是不是和虚拟机很像？容器里面有张网卡，容器外有张网卡，容器外的网卡连到docker0网桥，通过这个网桥，容器直接实现相互访问。</p>
+<p>如果你用brctl查看docker0网桥，你会发现它上面连着一些网卡。</p>
+<p>那连接容器和网桥的那个网卡和虚拟机一样吗？在虚拟机场景下，有一个虚拟化软件，通过TUN&#x2F;TAP设备虚拟一个网卡给虚拟机，但是容器场景下并没有虚拟化软件，这该怎么办呢？</p>
+<p>在Linux下，可以创建一对veth pair的网卡，从一边发送包，另一边就能收到。</p>
+<p>我们首先通过这个命令创建这么一对。</p>
+<pre><code>ip link add name veth1 mtu 1500 type veth peer name veth2 mtu 1500
+</code></pre>
+<p>其中一边可以打到docker0网桥上。</p>
+<pre><code>ip link set veth1 master testbr
+ip link set veth1 up
+</code></pre>
+<p>那另一端如何放到容器里呢？</p>
+<p>一个容器的启动会对应一个namespace，我们要先找到这个namespace。对于docker来讲，pid就是namespace的名字，可以通过这个命令获取。</p>
+<pre><code>docker inspect &#39;--format=&#123;&#123; .State.Pid &#125;&#125;&#39; test
+</code></pre>
+<p>假设结果为12065，这个就是namespace名字。</p>
+<p>默认Docker创建的网络namespace不在默认路径下 ，ip netns看不到，所以需要ln软链接一下。链接完毕以后，我们就可以通过ip netns命令操作了。</p>
+<pre><code>rm -f /var/run/netns/12065
+ln -s /proc/12065/ns/net /var/run/netns/12065
+</code></pre>
+<p>然后，我们就可以将另一端veth2塞到namespace里面。</p>
+<pre><code>ip link set veth2 netns 12065
+</code></pre>
+<p>然后，将容器内的网卡重命名。</p>
+<pre><code>ip netns exec 12065 ip link set veth2 name eth0
+</code></pre>
+<p>然后，给容器内网卡设置ip地址。</p>
+<pre><code>ip netns exec 12065 ip addr add 172.17.0.2/16 dev eth0
+ip netns exec 12065 ip link set eth0 up
+</code></pre>
+<p>一台机器内部容器的互相访问没有问题了，那如何访问外网呢？</p>
+<p>你先想想看有没有思路？对，就是虚拟机里面的桥接模式和NAT模式。Docker默认使用NAT模式。NAT模式分为SNAT和DNAT，如果是容器内部访问外部，就需要通过SNAT。</p>
+<p>从容器内部的客户端访问外部网络中的服务器，我画了一张图。在 <a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/10742">虚拟机</a> 那一节，也有一张类似的图。</p>
+<p><img src="/./img/5452971c96e8fea33c3f873860e25c93.jpg"></p>
+<p>在宿主机上，有这么一条iptables规则：</p>
+<pre><code>-A POSTROUTING -s 172.17.0.0/16 ! -o docker0 -j MASQUERADE
+</code></pre>
+<p>所有从容器内部发出来的包，都要做地址伪装，将源IP地址，转换为物理网卡的IP地址。如果有多个容器，所有的容器共享一个外网的IP地址，但是在conntrack表中，记录下这个出去的连接。</p>
+<p>当服务器返回结果的时候，到达物理机，会根据conntrack表中的规则，取出原来的私网IP，通过DNAT将地址转换为私网IP地址，通过网桥docker0实现对内的访问。</p>
+<p>如果在容器内部属于一个服务，例如部署一个网站，提供给外部进行访问，需要通过Docker的端口映射技术，将容器内部的端口映射到物理机上来。</p>
+<p>例如容器内部监听80端口，可以通Docker run命令中的参数-p 10080:80，将物理机上的10080端口和容器的80端口映射起来， 当外部的客户端访问这个网站的时候，通过访问物理机的10080端口，就能访问到容器内的80端口了。</p>
+<p><img src="/./img/49bb6b2a30fe76b124182980da935ebb.jpg"></p>
+<p>Docker有两种方式，一种是通过一个进程 <strong>docker-proxy</strong> 的方式，监听10080，转换为80端口。</p>
+<pre><code>/usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 10080 -container-ip 172.17.0.2 -container-port 80
+</code></pre>
+<p>另外一种方式是通过 <strong>DNAT</strong> 方式，在-A PREROUTING阶段加一个规则，将到端口10080的DNAT称为容器的私有网络。</p>
+<pre><code>-A DOCKER -p tcp -m tcp --dport 10080 -j DNAT --to-destination 172.17.0.2:80
+</code></pre>
+<p>如此就可以实现容器和物理网络之间的互通了。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
-<li><p>远程调用看起来用Socket编程就可以了，其实是很复杂的，要解决协议约定问题、传输问题和服务发现问题。</p>
+<li><p>容器是一种比虚拟机更加轻量级的隔离方式，主要通过namespace和cgroup技术进行资源的隔离，namespace用于负责看起来隔离，cgroup用于负责用起来隔离。</p>
 </li>
-<li><p>大牛Bruce Jay Nelson的论文、早期ONC RPC框架，以及NFS的实现，给出了解决这三大问题的示范性实现，也即协议约定要公用协议描述文件，并通过这个文件生成Stub程序；RPC的传输一般需要一个状态机，需要另外一个进程专门做服务发现。</p>
+<li><p>容器网络连接到物理网络的方式和虚拟机很像，通过桥接的方式实现一台物理机上的容器进行相互访问，如果要访问外网，最简单的方式还是通过NAT。</p>
 </li>
 </ul>
+<p>最后，给你留两个思考题：</p>
 <ol>
-<li><p>在这篇文章中，mount的过程是通过系统调用，最终调用到RPC层。一旦mount完毕之后，客户端就像写入本地文件一样写入NFS了，这个过程是如何触发RPC层的呢？</p>
+<li><p>容器内的网络和物理机网络可以使用NAT的方式相互访问，如果这种方式用于部署应用，有什么问题呢？</p>
 </li>
-<li><p>ONC RPC是早期的RPC框架，你觉得它有哪些问题呢？</p>
+<li><p>和虚拟机一样，不同物理机上的容器需要相互通信，你知道容器是怎么做到这一点吗？</p>
 </li>
 </ol>
 
@@ -447,7 +534,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://MerlinCLZ.github.io/19-RPC%E5%8D%8F%E8%AE%AE%E7%BB%BC%E8%BF%B0/">http://MerlinCLZ.github.io/19-RPC%E5%8D%8F%E8%AE%AE%E7%BB%BC%E8%BF%B0/</a>
+                    <a href="http://MerlinCLZ.github.io/19-%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C/">http://MerlinCLZ.github.io/19-%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -536,13 +623,13 @@
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/20-%E8%B7%A8%E8%AF%AD%E8%A8%80%E7%B1%BBRPC%E5%8D%8F%E8%AE%AE/">
+                <a href="/20-%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C%E4%B9%8BFlannel/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/21.jpg" class="responsive-img" alt="20-跨语言类RPC协议">
+                        <img src="/medias/featureimages/8.jpg" class="responsive-img" alt="20-容器网络之Flannel">
                         
-                        <span class="card-title">20-跨语言类RPC协议</span>
+                        <span class="card-title">20-容器网络之Flannel</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -553,7 +640,7 @@
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2023-04-02
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-04-05
                         </span>
                         <span class="publish-author">
                             

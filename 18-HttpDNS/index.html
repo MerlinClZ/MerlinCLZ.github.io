@@ -336,7 +336,7 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="第18讲-HttpDNS"><a href="#第18讲-HttpDNS" class="headerlink" title="第18讲 | HttpDNS"></a>第18讲 | HttpDNS</h1><p>上一节我们知道了DNS的两项功能，第一是根据名称查到具体的地址，另外一个是可以针对多个地址做负载均衡，而且可以在多个地址中选择一个距离你近的地方访问。</p>
+                <h1 id="第18讲-HttpDNS"><a href="#第18讲-HttpDNS" class="headerlink" title="第18讲 | HttpDNS"></a>第18讲 | HttpDNS</h1><p>上一节我们知道了DNS的两项功能，<strong>第一是根据名称查到具体的地址</strong>，另外一个是可以<strong>针对多个地址做负载均衡</strong>，而且可以在多个地址中选择一个距离你近的地方访问。</p>
 <p>然而有时候这个地址簿也经常给你指错路，明明距离你500米就有个吃饭的地方，非要把你推荐到5公里外。为什么会出现这样的情况呢？</p>
 <p>还记得吗？当我们发出请求解析DNS的时候，首先，会先连接到运营商本地的DNS服务器，由这个服务器帮我们去整棵DNS树上进行解析，然后将解析的结果返回给客户端。但是本地的DNS服务器，作为一个本地导游，往往有自己的“小心思”。</p>
 <h2 id="传统DNS存在哪些问题？"><a href="#传统DNS存在哪些问题？" class="headerlink" title="传统DNS存在哪些问题？"></a>传统DNS存在哪些问题？</h2><h3 id="1-域名缓存问题"><a href="#1-域名缓存问题" class="headerlink" title="1.域名缓存问题"></a>1.域名缓存问题</h3><p>它可以在本地做一个缓存，也就是说，不是每一个请求，它都会去访问权威DNS服务器，而是访问过一次就把结果缓存到自己本地，当其他人来问的时候，直接就返回这个缓存数据。</p>
@@ -357,7 +357,7 @@
 <p>这就像，有的导游比较勤快、敬业，时时刻刻关注酒店、餐馆、交通的变化，问他的时候，往往会得到最新情况。有的导游懒一些，8年前背的导游词就没换过，问他的时候，指的路往往就是错的。</p>
 <h3 id="5-解析延迟问题"><a href="#5-解析延迟问题" class="headerlink" title="5.解析延迟问题"></a>5.解析延迟问题</h3><p>从上一节的DNS查询过程来看，DNS的查询过程需要递归遍历多个DNS服务器，才能获得最终的解析结果，这会带来一定的时延，甚至会解析超时。</p>
 <h2 id="HttpDNS的工作模式"><a href="#HttpDNS的工作模式" class="headerlink" title="HttpDNS的工作模式"></a>HttpDNS的工作模式</h2><p>既然DNS解析中有这么多问题，那怎么办呢？难不成退回到直接用IP地址？这样显然不合适，所以就有了 <strong>HttpDNS</strong>。</p>
-<p>HttpDNS其实就是，不走传统的DNS解析，而是自己搭建基于HTTP协议的DNS服务器集群，分布在多个地点和多个运营商。当客户端需要DNS解析的时候，直接通过HTTP协议进行请求这个服务器集群，得到就近的地址。</p>
+<p><strong>HttpDNS其实就是，不走传统的DNS解析，而是自己搭建基于HTTP协议的DNS服务器集群，分布在多个地点和多个运营商。当客户端需要DNS解析的时候，直接通过HTTP协议进行请求这个服务器集群，得到就近的地址。</strong></p>
 <p>这就相当于每家基于HTTP协议，自己实现自己的域名解析，自己做一个自己的地址簿，而不使用统一的地址簿。但是默认的域名解析都是走DNS的，因而使用HttpDNS需要绕过默认的DNS路径，就不能使用默认的客户端。使用HttpDNS的，往往是手机应用，需要在手机端嵌入支持HttpDNS的客户端SDK。</p>
 <p>通过自己的HttpDNS服务器和自己的SDK，实现了从依赖本地导游，到自己上网查询做旅游攻略，进行自由行，爱怎么玩怎么玩。这样就能够避免依赖导游，而导游又不专业，你还不能把他怎么样的尴尬。</p>
 <p>下面我来解析一下 <strong>HttpDNS的工作模式</strong>。</p>
@@ -371,9 +371,9 @@
 <p>手机客户端自然知道手机在哪个运营商、哪个地址。由于是直接的HTTP通信，HttpDNS服务器能够准确知道这些信息，因而可以做精准的全局负载均衡。</p>
 <p><img src="/./img/images/9938/aa45cf8a07b563ccea376f712b2e8975.jpg"></p>
 <p>当然，当所有这些都不工作的时候，可以切换到传统的LocalDNS来解析，慢也比访问不到好。那HttpDNS是如何解决上面的问题的呢？</p>
-<p>其实归结起来就是两大问题。一是解析速度和更新速度的平衡问题，二是智能调度的问题，对应的解决方案是HttpDNS的缓存设计和调度设计。</p>
+<p>其实归结起来就是两大问题。<strong>一是解析速度和更新速度的平衡问题，二是智能调度的问题，对应的解决方案是HttpDNS的缓存设计和调度设计。</strong></p>
 <h3 id="HttpDNS的缓存设计"><a href="#HttpDNS的缓存设计" class="headerlink" title="HttpDNS的缓存设计"></a>HttpDNS的缓存设计</h3><p>解析DNS过程复杂，通信次数多，对解析速度造成很大影响。为了加快解析，因而有了缓存，但是这又会产生缓存更新速度不及时的问题。最要命的是，这两个方面都掌握在别人手中，也即本地DNS服务器手中，它不会为你定制，你作为客户端干着急没办法。</p>
-<p>而HttpDNS就是将解析速度和更新速度全部掌控在自己手中。一方面，解析的过程，不需要本地DNS服务递归的调用一大圈，一个HTTP的请求直接搞定，要实时更新的时候，马上就能起作用；另一方面为了提高解析速度，本地也有缓存，缓存是在客户端SDK维护的，过期时间、更新时间，都可以自己控制。</p>
+<p>而<strong>HttpDNS就是将解析速度和更新速度全部掌控在自己手中</strong>。一方面，解析的过程，不需要本地DNS服务递归的调用一大圈，一个HTTP的请求直接搞定，要实时更新的时候，马上就能起作用；<strong>另一方面为了提高解析速度，本地也有缓存，缓存是在客户端SDK维护的，过期时间、更新时间，都可以自己控制。</strong></p>
 <p>HttpDNS的缓存设计策略也是咱们做应用架构中常用的缓存设计模式，也即分为客户端、缓存、数据源三层。</p>
 <ul>
 <li><p>对于应用架构来讲，就是应用、缓存、数据库。常见的是Tomcat、Redis、MySQL。</p>
@@ -528,13 +528,13 @@
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/19-RPC%E5%8D%8F%E8%AE%AE%E7%BB%BC%E8%BF%B0/">
+                <a href="/19-%E5%AE%B9%E5%99%A8%E7%BD%91%E7%BB%9C/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/5.jpg" class="responsive-img" alt="19-RPC协议综述">
+                        <img src="/medias/featureimages/1.jpg" class="responsive-img" alt="19-容器网络">
                         
-                        <span class="card-title">19-RPC协议综述</span>
+                        <span class="card-title">19-容器网络</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -545,7 +545,7 @@
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2023-03-31
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-04-02
                         </span>
                         <span class="publish-author">
                             
