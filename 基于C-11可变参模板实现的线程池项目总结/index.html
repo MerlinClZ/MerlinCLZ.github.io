@@ -647,7 +647,7 @@ std<span class="token operator">::</span>counting_semaphore<span class="token op
 在C<span class="token operator">++</span><span class="token number">11</span>及以前版本中，由于标准库并未提供信号量，开发者通常借助于条件变量、互斥量或者其他第三方库模拟信号量的行为。而在C<span class="token operator">++</span><span class="token number">20</span>以后，可以直接使用内置的信号量类实现更为简洁和直观的同步控制。
 </code></pre>
 </blockquote>
-<h2 id="六-项目设计"><a href="#六-项目设计" class="headerlink" title="六.项目设计"></a>六.项目设计</h2><p><img src="D:/Github/blog/source/_posts/img/Ax86hJ8NRx5e-1709975491311-1.png"></p>
+<h2 id="六-项目设计"><a href="#六-项目设计" class="headerlink" title="六.项目设计"></a>六.项目设计</h2><p><img src="https://gcdnb.pbrd.co/images/Ax86hJ8NRx5e.png?o=1"></p>
 <h3 id="1-threadp-ool-h接口"><a href="#1-threadp-ool-h接口" class="headerlink" title="1.threadp!()ool.h接口"></a>1.threadp!()ool.h接口</h3><blockquote>
 <pre class=" language-cpp"><code class="language-cpp"><span class="token comment" spellcheck="true">//一.线程池类型</span>
 <span class="token keyword">class</span> <span class="token class-name">ThreadPool</span>
@@ -1135,6 +1135,7 @@ idleThreadSize_<span class="token operator">++</span><span class="token punctuat
 <span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>
 </code></pre>
 </blockquote>
+<p><img src="https://gcdnb.pbrd.co/images/lsZzpriKIzAG.png?o=1"></p>
 <h4 id="3-4-Any类型-线程池返回任意类型结果"><a href="#3-4-Any类型-线程池返回任意类型结果" class="headerlink" title="3.4 Any类型 线程池返回任意类型结果"></a>3.4 Any类型 线程池返回任意类型结果</h4><p>有些任务需要线程执行结束后返回给用户结果, 用户提交的任务不一样相应的会有不同的返回值</p>
 <p>如何设计返回值类型? 用模板T? 不能使用模板</p>
 <blockquote>
@@ -1153,7 +1154,7 @@ idleThreadSize_<span class="token operator">++</span><span class="token punctuat
 <li>任意的其他类型 <strong>template</strong></li>
 <li>能让一个类型 指向 其他任意的类型呢?  <strong>基类类型指向派生类类型</strong></li>
 </ul>
-<p><img src="https://pasteboard.co/zSrPsK7SXrZO.png"></p>
+<p><img src="https://gcdnb.pbrd.co/images/zSrPsK7SXrZO.png?o=1"></p>
 <p>Any &#x3D;&gt; Base*——&gt;  Derive: public Base</p>
 <p>1.Any类型的成员是基类指针Base* 因为只有基类指针可以指向不同的派生类对象.</p>
 <p>2.让基类指针指向从基类继承来的派生类对象Derive.</p>
